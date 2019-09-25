@@ -9,6 +9,8 @@
 #ifndef MACROCOMMANDS_H_
 #define MACROCOMMANDS_H_
 
+#define STOP	0
+
 #define TURNING 4
 #define DRIVE	5
 

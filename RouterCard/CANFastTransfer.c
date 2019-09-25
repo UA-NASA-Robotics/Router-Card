@@ -4,7 +4,7 @@
  *
  * Created: 10/26/2016 11:23:36 PM
  *  Author: reed
- */ 
+ */
 #include <avr/io.h>
 #include "CANFastTransfer.h"
 #include "can.h"
@@ -12,24 +12,30 @@
 #include "PointerList.h"
 #include "CommsDefenition.h"
 #include "QueueCANtoUART.h"
+#include "AT90CAN_UART.h"
 #include "Config.h"
 #include "LEDs.h"
+#include <avr/delay.h>
 #include "Config.h"
 #include <stdlib.h>
 #define Instant  0
 #define WhenReceiveCall  1
+#define CAN_RECIEVE_SIZE   10
+
 int receiveMode = 0;
-struct Node * head = NULL; 
+struct Node * head = NULL;
 struct ringBufSCAN ReceiveBuffer;
-struct ringBufSCAN ReceiveBufferControl; 
+struct ringBufSCAN ReceiveBufferControl;
 struct ringBufSCAN ReceiveBufferBeacon;
-struct ringBufSCAN ring_buffer_CAN_Control; 
-struct ringBufSCAN ring_buffer_CAN_Beacon; 
-int ReceivedData = 0; 
-int TransmitSetMissMatch = 0; 
+struct ringBufSCAN ring_buffer_CAN_Control;
+struct ringBufSCAN ring_buffer_CAN_Beacon;
+int ReceivedData = 0;
+int TransmitSetMissMatch = 0;
+int CAN_FT_recievedFlag[CAN_RECIEVE_SIZE];
+
+int ReceiveCAN[CAN_RECIEVE_SIZE];
 
 
-int ReceiveCAN[10];
 void initCANFastTransfer(void)
 {
 	beginCANFast(ReceiveCAN, sizeof(ReceiveCAN), RouterCardAddress);
@@ -40,7 +46,7 @@ void ReceiveCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 {
 	//Possibly two modes one that requires calling receive data like old Fast Transfer for compatibility purposes
 	// Then the second that automatically updates the array, and is more efficient.
-	
+
 	if(receiveMode == WhenReceiveCall)
 	{
 		if(p->length == 8 || p->length == 9) //Check number of bytes, if 8 read in two ints
@@ -59,7 +65,7 @@ void ReceiveCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 		{
 			if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
 				Send_buffer_put(&ReceiveBuffer, (p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
-				ReceivedData = 1; 
+				ReceivedData = 1;
 			}
 			Send_buffer_put(&ReceiveBuffer, LastBoardReceived, (p->id & 0b11111));
 		}
@@ -68,29 +74,33 @@ void ReceiveCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 	} //end wait receive mode
 	else //instant
 	{
-		receiveArrayAddressCAN[LastBoardReceived]= (p->id & 0b11111); //set last board received
+		//receiveArrayAddressCAN[LastBoardReceived]= (p->id & 0b11111); //set last board received
+		setCANFTdata(LastBoardReceived,  (p->id & 0b11111));
 		if(p->length == 8 || p->length == 9) //Check number of bytes, if 8 read in two ints
 		{
 			if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
-				receiveArrayAddressCAN[(p->data[0]<<8) +(p->data[1])] = (p->data[2]<<8) +(p->data[3]);
+				//receiveArrayAddressCAN[(p->data[0]<<8) +(p->data[1])] = (p->data[2]<<8) +(p->data[3]);
+				setCANFTdata((p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
 				ReceivedData = 1;
 			}
 			if((p->data[4]<<8) +(p->data[5]) < MaxIndex) {
-				receiveArrayAddressCAN[(p->data[4]<<8) +(p->data[5])] = (p->data[6]<<8) +(p->data[7]);
+				//receiveArrayAddressCAN[(p->data[4]<<8) +(p->data[5])] = (p->data[6]<<8) +(p->data[7]);
+				setCANFTdata((p->data[4]<<8) +(p->data[5]), (p->data[6]<<8) +(p->data[7]));
 				ReceivedData = 1;
 			}
-			 
+
 		}
 		else //else read in one int
 		{
 			if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
-				receiveArrayAddressCAN[(p->data[0]<<8) +(p->data[1])] = (p->data[2]<<8) +(p->data[3]);
+				//receiveArrayAddressCAN[(p->data[0]<<8) +(p->data[1])] = (p->data[2]<<8) +(p->data[3]);
+				setCANFTdata((p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
 				ReceivedData = 1;
 			}
 		}
 
 	} //end default receive mode
-	
+
 }
 
 #ifndef DISABLE_CAN_FORWARDING_RECEIVEISR
@@ -176,20 +186,20 @@ void ReceiveCANFastBEACON( CAN_packet *p, unsigned char mob) // interrupt callba
 
 void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 {
-	
+
 	//NEW STATIC METHOD
 	//if there is something to send
-	
-	if(Transmit_buffer_GetCount(&TransmitBuffer) > 0) 
+
+	if(Transmit_buffer_GetCount(&TransmitBuffer) > 0)
 	{
-// 		#ifdef NEW_MAIN
-// 		toggleLED(LED1);
-// 		#endif
-		//if more than 2 data/index pairs left might be able to send large packet. 
+//    #ifdef NEW_MAIN
+//    toggleLED(LED1);
+//    #endif
+		//if more than 2 data/index pairs left might be able to send large packet.
 		if(Transmit_buffer_GetCount(&TransmitBuffer)>6) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
 			p->id = ( address << 6) + RouterCardAddress; //not passed through messages will have wrong sender address
-			//we are good to send the first index/value pair for sure. 
+			//we are good to send the first index/value pair for sure.
 			for(int i = 0; i<2; i++) {
 				unsigned int temp = Transmit_buffer_get(&TransmitBuffer);
 				p->data[2*i] = (temp >> 8);
@@ -204,24 +214,24 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 					p->data[2*i] = (temp >> 8);
 					p->data[2*i + 1] = temp;
 				}
-				//need to check if this was the last packet 
+				//need to check if this was the last packet
 				if(Transmit_buffer_peek(&TransmitBuffer) == address) {
 					//next address is same, so this isn't the last packet, send a length 8.
 					p->length = 8;
 				}
 				else {
 					//next address is different, and this is the last packet, so send a 9.
-					p->length = 9; 
+					p->length = 9;
 				}
 			}
 			else {
-				//addresses don't match and we should just send what is currently in the packet. 
-				p->length = 4; 
+				//addresses don't match and we should just send what is currently in the packet.
+				p->length = 4;
 			}
 		}
-			//if exactly 2 data/index pairs left send with length 9. Receiver
-			//will read the "wrong" length correctly, but realize this is the last packet.
-			//note: still need to check incase two different destinations. 
+		//if exactly 2 data/index pairs left send with length 9. Receiver
+		//will read the "wrong" length correctly, but realize this is the last packet.
+		//note: still need to check incase two different destinations.
 		else if(Transmit_buffer_GetCount(&TransmitBuffer)==6) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
 			p->id = ( address << 6) + RouterCardAddress; //not passed through messages will have wrong sender address
@@ -246,10 +256,10 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 				//addresses don't match and we should just send what is currently in the packet.
 				p->length = 4;
 			}
-			
+
 		}
-			//if only 1 data/index pair receiver will know it is the last packet.
-		else if(Transmit_buffer_GetCount(&TransmitBuffer)==3){
+		//if only 1 data/index pair receiver will know it is the last packet.
+		else if(Transmit_buffer_GetCount(&TransmitBuffer)==3) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
 			p->id = ( address << 6) + RouterCardAddress; //not passed through messages will have wrong sender address
 			p->length = 4;
@@ -258,17 +268,17 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 				p->data[2*i] = (temp >> 8);
 				p->data[2*i + 1] = temp;
 			}
-			
+
 		}
-	
-		else 
+
+		else
 		{
 			//error, missing dest/index/value set, previous packets could be very corrupt
 			TransmitSetMissMatch++;
-// 			#ifdef NEW_MAIN
-// 				toggleLED(LED9);
-// 			#endif
-			Transmit_buffer_flush(&TransmitBuffer,1); 
+//      #ifdef NEW_MAIN
+//        toggleLED(LED9);
+//      #endif
+			Transmit_buffer_flush(&TransmitBuffer,1);
 		}
 	}
 	else {
@@ -279,47 +289,80 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 
 
 
-void beginCANFast(volatile int * ptr, unsigned int maxSize, unsigned char givenAddress){
+void beginCANFast(volatile int * ptr, unsigned int maxSize, unsigned char givenAddress) {
 	receiveArrayAddressCAN = ptr;
 	moduleAddressCAN = givenAddress;
 	MaxIndex = maxSize;
-	
+
 	BOOL ret;
 	ret=prepare_rx( CANFAST_MOB, moduleAddressCAN<<6, 0b11111100000, ReceiveCANFast); //all 1s forces comparison
 	ASSERT( ret==0);
-	
-	#ifndef DISABLE_CAN_FORWARDING_RECEIVE
+
+#ifndef DISABLE_CAN_FORWARDING_RECEIVE
 	ret=prepare_rx( CONTROL_MOB, ControlBoxAddress<<6, 0b11111100000, ReceiveCANFastCONTROL); //all 1s forces comparison
 	ASSERT( ret==0);
 	ret=prepare_rx( BEACON_MOB, BeaconAddress<<6, 0b11111100000, ReceiveCANFastBEACON); //all 1s forces comparison
 	ASSERT( ret==0);
-	#endif
-	
+#endif
+
 	prepare_tx(TRANSMITMOB, 0b11111111111, 0b11111111111, TransmitCANFast);
 	List_Init(&head);
 	Send_buffer_flush(&ring_buffer_CAN,0);
 	//Send_buffer_flush(&ring_buffer_CAN_Control,1);
 	//Send_buffer_flush(&ring_buffer_CAN_Beacon,1);
-	Transmit_buffer_flush(&TransmitBuffer,0); 
+	Transmit_buffer_flush(&TransmitBuffer,0);
 }
 
 void SetReceiveMode(int input) {
-	if(input == Instant || input == WhenReceiveCall ) 
+	if(input == Instant || input == WhenReceiveCall )
 	{
-		receiveMode = input; 
+		receiveMode = input;
 	}
 }
+void setCANFTdata(int index, int val)
+{
+	receiveArrayAddressCAN[index]=val;
+	CAN_FT_recievedFlag[index] = TRUE;
 
+}
+int getCANFTdata(int index)
+{
+	return receiveArrayAddressCAN[index];
+
+}
+void clearCANFTdataIndex(int index)
+{
+	receiveArrayAddressCAN[index] = 0;
+}
+bool getCANFT_RFlag(int index)
+{
+	if(CAN_FT_recievedFlag[index] == false) {
+		return false;
+	} else {
+		CAN_FT_recievedFlag[index] = false;
+		return true;
+	}
+}
 int ReceiveDataCAN(void) {
 	if(ReceivedData) {
 		ReceivedData = 0;
+
 		int i = Send_buffer_GetCount(&ReceiveBuffer);
-		if(i || !receiveMode) //this better be true ... if not in instant receive 
+		if(i || !receiveMode) //this better be true ... if not in instant receive
 		{
-			for(;i>0; i=i-2)
+
+			for(; i>0; i=i-2)
 			{
 				int address = Send_buffer_get(&ReceiveBuffer);
 				receiveArrayAddressCAN[address] = Send_buffer_get(&ReceiveBuffer);
+				CAN_FT_recievedFlag[address] = TRUE;
+				//if(address == 3) {
+//        while(1) {
+//          toggleLED(6);
+//          _delay_ms(500);
+//        }
+				//}
+
 			}
 			return 1;
 		}
@@ -328,10 +371,10 @@ int ReceiveDataCAN(void) {
 			//error (how was ReceiveData true if no data available)
 			return 0;
 		}
-		
+
 	}
 	else
-	return 0;
+		return 0;
 }
 
 //End Receive Functions
@@ -353,21 +396,21 @@ void ToSendCAN_Beacon(unsigned char where, unsigned int what)
 }
 
 void sendDataCAN( unsigned int whereToSend)
-{	
+{
 	//NEW STATIC METHOD
 	char TxKickNeeded = 1; //assume kick is needed
 	int temp = Send_buffer_GetCount(&ring_buffer_CAN); //get size of things to send
-	
+	//USART0_put_C(Transmit_buffer_GetCount(&TransmitBuffer));
 	if(Transmit_buffer_GetCount(&TransmitBuffer)>1) {
 		TxKickNeeded = 0;
 	}
 	for(int i = 0; i<(temp>>1); i++) { //need to divid by two since reading index/value pairs, hence >>1
-		int index = Send_buffer_get(&ring_buffer_CAN); 
-		int value = Send_buffer_get(&ring_buffer_CAN); 
-		Transmit_buffer_put(&TransmitBuffer, whereToSend, index, value); 
+		int index = Send_buffer_get(&ring_buffer_CAN);
+		int value = Send_buffer_get(&ring_buffer_CAN);
+		Transmit_buffer_put(&TransmitBuffer, whereToSend, index, value);
 	}
 	if(TxKickNeeded) {
-		can_tx_kick(TRANSMITMOB); 
+		can_tx_kick(TRANSMITMOB);
 	}
 }
 
@@ -376,7 +419,7 @@ void sendDataCAN_Control( unsigned int whereToSend)
 	//NEW STATIC METHOD
 	char TxKickNeeded = 1; //assume kick is needed
 	int temp = Send_buffer_GetCount(&ring_buffer_CAN_Control); //get size of things to send
-	
+
 	if(Transmit_buffer_GetCount(&TransmitBuffer)>1) {
 		TxKickNeeded = 0;
 	}
@@ -388,7 +431,7 @@ void sendDataCAN_Control( unsigned int whereToSend)
 	if(TxKickNeeded) {
 		can_tx_kick(TRANSMITMOB);
 	}
-	
+
 }
 
 void sendDataCAN_Beacon( unsigned int whereToSend)
@@ -396,7 +439,7 @@ void sendDataCAN_Beacon( unsigned int whereToSend)
 	//NEW STATIC METHOD
 	char TxKickNeeded = 1; //assume kick is needed
 	int temp = Send_buffer_GetCount(&ring_buffer_CAN_Beacon); //get size of things to send
-	
+
 	if(Transmit_buffer_GetCount(&TransmitBuffer)>1) {
 		TxKickNeeded = 0;
 	}
@@ -408,11 +451,11 @@ void sendDataCAN_Beacon( unsigned int whereToSend)
 	if(TxKickNeeded) {
 		can_tx_kick(TRANSMITMOB);
 	}
-	
+
 }
 
 int GetTransmitErrorCount(void) {
-	return TransmitSetMissMatch; 
+	return TransmitSetMissMatch;
 }
 
 //End Transmit Functions
@@ -459,7 +502,7 @@ unsigned int Send_buffer_get(struct ringBufSCAN* _this) {
 		c = _this->buf[_this->tail];
 		_this->tail = Send_buffer_modulo_inc(_this->tail, BUFFER_SIZECAN);
 		--_this->count;
-		} else {
+	} else {
 		c = 0;
 	}
 	return (c);
@@ -471,7 +514,7 @@ unsigned int Transmit_buffer_get(struct ringBufTRANSMIT* _this) {
 		c = _this->buf[_this->tail];
 		_this->tail = Send_buffer_modulo_inc(_this->tail, BUFFER_SIZETRANSMIT);
 		--_this->count;
-		} else {
+	} else {
 		c = 0;
 	}
 	return (c);
@@ -480,7 +523,7 @@ unsigned int Transmit_buffer_peek(struct ringBufTRANSMIT* _this) {
 	unsigned int c;
 	if (_this->count > 0) {
 		c = _this->buf[_this->tail];
-	} 
+	}
 	else {
 		c = 0;
 	}
@@ -520,13 +563,13 @@ unsigned int Send_buffer_modulo_inc(const unsigned int value, const unsigned int
 	return (my_value);
 }
 
-//getter for send circular buffer. 
+//getter for send circular buffer.
 unsigned int Send_buffer_GetCount(struct ringBufSCAN* _this) {
-	return _this->count; 
-	
+	return _this->count;
+
 }
 
 unsigned int Transmit_buffer_GetCount(struct ringBufTRANSMIT* _this) {
 	return _this->count;
-	
+
 }

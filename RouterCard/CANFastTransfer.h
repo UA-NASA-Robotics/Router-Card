@@ -3,28 +3,32 @@
  *
  * Created: 10/26/2016 10:55:15 PM
  *  Author: reed
- */ 
+ */
 
 
 #ifndef CANFASTTRANSFER_H_
 #define CANFASTTRANSFER_H_
+#include <stdbool.h>
 
-#define CANFAST_MOB 4
-#define CONTROL_MOB 5
-#define BEACON_MOB 6
+#define CANFAST_MOB 5
+#define CONTROL_MOB 6
+#define BEACON_MOB 7
 #define TRANSMITMOB 13
 #define BUFFER_SIZECAN 40
 #define BUFFER_SIZETRANSMIT 90 //should be multiple of 3
 
- 
+
 //Init function
 void initCANFastTransfer(void);
-void beginCANFast(volatile int * ptr, unsigned int maxSize, unsigned char givenAddress); 
+void beginCANFast(volatile int * ptr, unsigned int maxSize, unsigned char givenAddress);
 
 //RX functions
-void SetReceiveMode(int input); 
-int  ReceiveDataCAN(void); 
-
+void SetReceiveMode(int input);
+int  ReceiveDataCAN(void);
+void setCANFTdata(int index, int val);
+int getCANFTdata(int index);
+void clearCANFTdataIndex(int index);
+bool getCANFT_RFlag(int index);
 //TX functions
 void ToSendCAN( unsigned int where, unsigned int what);
 void ToSendCAN_Control(unsigned char where, unsigned int what);
@@ -32,11 +36,11 @@ void ToSendCAN_Beacon(unsigned char where, unsigned int what);
 void sendDataCAN( unsigned int whereToSend);
 void sendDataCAN_Control( unsigned int whereToSend);
 void sendDataCAN_Beacon( unsigned int whereToSend);
-int GetTransmitErrorCount(void); 
+int GetTransmitErrorCount(void);
 
 volatile int * receiveArrayAddressCAN; // this is where the data will go when it is received
 unsigned char moduleAddressCAN; // the address of this module
-unsigned int MaxIndex; 
+unsigned int MaxIndex;
 
 
 //Circular buffer stuff
@@ -66,7 +70,7 @@ unsigned int Transmit_buffer_peek(struct ringBufTRANSMIT* _this);
 void Send_buffer_flush(struct ringBufSCAN* _this, const int clearBuffer);
 void Transmit_buffer_flush(struct ringBufTRANSMIT* _this, const int clearBuffer);
 unsigned int Send_buffer_modulo_inc(const unsigned int value, const unsigned int modulus);
-unsigned int Send_buffer_GetCount(struct ringBufSCAN* _this); 
+unsigned int Send_buffer_GetCount(struct ringBufSCAN* _this);
 unsigned int Transmit_buffer_GetCount(struct ringBufTRANSMIT* _this);
 
 #endif /* CANFASTTRANSFER_H_ */

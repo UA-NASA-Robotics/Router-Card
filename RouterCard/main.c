@@ -3,7 +3,7 @@
  *
  * Created: 4/13/2016 11:28:41 PM
  * Author : reed
- */ 
+ */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -13,10 +13,10 @@
 #include <string.h>
 #include "can.h"
 #include "CommsDefenition.h"
-#include "FastTransfer.h" 
+#include "FastTransfer.h"
 #include "general.h"
 #include "assert.h"
-#include "MotorSystems/Motor.h" 
+#include "MotorSystems/Motor.h"
 #include "CANFastTransfer.h"
 #include "commsReceive.h"
 #include "LEDs.h"
@@ -24,86 +24,89 @@
 #include "InputButtons.h"
 #include "Timer.h"
 #include "Init.h"
-#define __AVR_CAN90CAN128 
+
+#define __AVR_CAN90CAN128
 
 
 
 //Time keeps for comms management
-timer_t ledTimer,  checkCANTimer, motorRampTimer;
-	 
-	 
-int main(void) 
+timer_t ledTimer,  checkCANTimer, motorRampTimer,watchDog;
+
+bool flipFlop= true;
+
+int main(void)
 {
+
 	initialize();
+
+	initCOMs();
+
+
+	setTimerInterval(&ledTimer,1000);
+
 	setTimerInterval(&motorRampTimer,100);
-	
-// 	testOpenLoopCommandsLeftAndRight(100000);
-// 	testOpenLoopCommandsLeftAndRightTurn(-120000);
-// 	testOpenLoopCommandsLeftAndRight(100000);
-// 	testOpenLoopCommandsLeftAndRightTurn(-120000);
-// 	testOpenLoopCommandsLeftAndRight(100000);
-// 	testOpenLoopCommandsLeftAndRightTurn(-120000);
-// 	testOpenLoopCommandsLeftAndRight(100000);
-// 	testOpenLoopCommandsLeftAndRightTurn(-120000);
-	
-	while(1) 
+	setTimerInterval(&checkCANTimer,100);
+	setTimerInterval(&watchDog,100);
+
+
+	//initMotors();
+
+
+	SetNeoPixRGB(100,0,0);
+//  while(1) {
+//    //rainBow();
+//  }
+	//USART1_Flush();
+	while(1)
 	{
-		
+
+		//toggleLED(6);
+//    while(1) {
+//      printUART1();
+//    }
 		//BLINK A LIGHT
-		if(timerDone(&ledTimer))	
+		if(timerDone(&ledTimer))
 		{
-			#ifdef NEW_MAIN
-				toggleLED(6);	
-			#else
-				toggleLED(TEST1);
-			#endif
+			//#ifdef NEW_MAIN
+//      if(flipFlop)
+//      {
+//        setLED(LED6,ON);
+//        flipFlop=false;
+//      }
+//      else
+//      {
+//
+//        flipFlop=true;
+//        setLED(LED6,OFF);
+//
+//      }
+
+			//PORTB ^= (1<<0);
+			//ToSendCAN(0, RouterCardAddress);
+			//ToSendCAN(1, getMacroCommand());
+			//ToSendCAN(2, getMacroSubCommand());
+			//sendDataCAN(NavigationAddress);
+
+//      #else
+//        toggleLED(TEST1);
+//      #endif
 		}
-		
-		
-		
-// 		if(timerDone(&motorRampTimer))
-// 		{
-// 			static int motorSpeedSend;
-// 			static bool updown=true;
-// 			if(updown && motorSpeedSend<100)
-// 			{
-// 				
-// 				motorSpeedSend++;
-// 				
-// 			}
-// 			else if(updown)
-// 			{
-// 				updown = false;
-// 				
-// 			}
-// 			else if(!updown && motorSpeedSend >-100)
-// 			{
-// 				motorSpeedSend--;
-// 			}
-// 			else if(!updown)
-// 			{
-// 				updown=true;
-// 			}
-// 			
-// 			RightMotor_SetVelNoCommsSafety(40*motorSpeedSend);
-// 			LeftMotor_SetVelNoCommsSafety(40*motorSpeedSend);
-// 			
-// 		}
-		//if (timerDone(&checkCANTimer)) 
-		//{
-			//if(ReceiveDataCAN())
-			//{
-				//
-			//}
-		//}
-		
-		//UPDATE THE COMMUNICATIONS		
-		updateComms();
-		
-		 
-	#ifdef USE_BUTTONS_TEST
-		buttonsInputTest();
-	#endif
-	
+		// Toggle WatchDog Pin
+//    if(timerDone(&watchDog))
+//    {
+//      DDRB ^= (1<<0); //watch dog pin
+//    }
+
+
+
+		//UPDATE THE COMMUNICATIONS
+		//updateComms();
+		updateComs2();
+
+
+#ifdef USE_BUTTONS_TEST
+		//buttonsInputTest();
+#endif
+
 	}
 }

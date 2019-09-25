@@ -6,11 +6,9 @@
  */ 
 #include <stdbool.h>
 #include "QueueCANtoUART.h"
-<<<<<<< HEAD
-#include "Definitions.h"
-=======
-#include "..\..\..\Common\CommsDefenition.h"
->>>>>>> develop
+
+#include "CommsDefenition.h"
+
 #include "FastTransfer.h"
 
 #include <stdlib.h>
@@ -46,18 +44,18 @@ char Send_Queue_ControlBox_put(char from, unsigned char where, unsigned int what
 			Queue_buffer_put(&Router_Buffer_To_ControlBox, where, what);
 		break;
 		
-		case NavigationAddress:
-			Queue_buffer_put(&Navigation_Buffer_To_ControlBox, where, what);
-		break;
-		
-		case SensorAddress:
-			Queue_buffer_put(&Sensor_Buffer_To_ControlBox, where, what);
-		break;
-		
-		case MouseGyroAddress:
-			Queue_buffer_put(&MouseGyro_Buffer_To_ControlBox, where, what);
-		break;
-		
+		//case NavigationAddress:
+			//Queue_buffer_put(&Navigation_Buffer_To_ControlBox, where, what);
+		//break;
+		//
+		//case SensorAddress:
+			//Queue_buffer_put(&Sensor_Buffer_To_ControlBox, where, what);
+		//break;
+		//
+		//case MouseGyroAddress:
+			//Queue_buffer_put(&MouseGyro_Buffer_To_ControlBox, where, what);
+		//break;
+		//
 		case BucketAddress:
 			Queue_buffer_put(&Bucket_Buffer_To_ControlBox, where, what);
 		break;

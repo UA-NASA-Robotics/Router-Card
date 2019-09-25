@@ -8,11 +8,8 @@
 #include "Config.h"
 #include "CANFastTransfer.h"
 #include "FastTransfer.h"
-<<<<<<< HEAD
 #include "Definitions.h"
-=======
-#include "..\..\..\Common\CommsDefenition.h"
->>>>>>> develop
+#include  "CommsDefenition.h"
 #include "MacroCommands.h"
 #include "LEDs.h"
 #include "commsReceive.h"
@@ -117,7 +114,7 @@ void buttonsInputTest(void)
 			ToSendCAN(0, RouterCardAddress);	//From Router Card
 			ToSendCAN(1, TURNING);				//Macro Command
 			ToSendCAN(2, 45);					//Macro sub-command
-			sendDataCAN(SensorAddress);			//To sensor card
+			sendDataCAN(MasterAddress);			//To sensor card
 			ON_OFF=true;		
 			setMacroSubCommand(45);
 			setMacroCommand(TURNING);
@@ -129,7 +126,7 @@ void buttonsInputTest(void)
 			ToSendCAN(0, RouterCardAddress);	//From Router Card
 			ToSendCAN(1, 0);				//Macro Command
 			ToSendCAN(2, 0);					//Macro sub-command
-			sendDataCAN(SensorAddress);			//To sensor card
+			sendDataCAN(MasterAddress);			//To sensor card
 			ON_OFF=false;
 			setMacroSubCommand(0);
 			setMacroCommand(0);

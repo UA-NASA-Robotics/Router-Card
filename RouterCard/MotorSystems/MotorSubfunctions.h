@@ -12,8 +12,7 @@
 #include "MotorDefines.h"
 
 
-void ReceiveMotor3( CAN_packet *p, unsigned char mob);
-void ReceiveMotor4( CAN_packet *p, unsigned char mob);
+
 
 //communication functions to protect comms to motors.
 BOOL SendNoVerify(SDO_packet Packet, circular_buffer* buffer, int MotorNumber);

@@ -14,12 +14,15 @@
 #define DISABLE_CAN_FORWARDING_RECEIVE
 #define DISABLE_CAN_FORWARDING_RECEIVEISR
 
+//#define INIT_MOTOR_CONFIGURATIONS
+
 //#define DISABLE_MOTOR_SYSTEMS
 
 //#define DISABLE_LEFT_MOTOR
 //#define DISABLE_RIGHT_MOTOR
-//#define DISABLE_ARM_MOTOR
-//#define DISABLE_BUCKET_MOTOR
+// #define DISABLE_ARM_MOTOR
+// #define DISABLE_BUCKET_MOTOR
+#define DISABLE_PLOW_MOTOR
 
 //This makes the tread motors operate using the CAN enabled motor controllers
 //If this is commented out then the motor commands are sent to the bumper boards

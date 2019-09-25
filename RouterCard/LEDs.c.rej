@@ -1,0 +1,131 @@
+diff a/RouterCard/LEDs.c b/RouterCard/LEDs.c	(rejected hunks)
+@@ -6,26 +6,120 @@
+  */
+ 
+ #include "LEDs.h"
+-#include "light_ws2812.h"
+-#include "ws2812_config.h"
++#include "Timer.h"
++#include <util/delay.h>
+ #include <avr/io.h>
+ 
+ 
+-unsigned int count;
+-struct cRGB ledStrand[20];
++#define NEOPIXALcount_upright 9
++#define NEOPIXALcount_arm 25
++
++cRGB_t ledStrand_leftArm[NEOPIXALcount_arm];
++cRGB_t ledStrand_rightArm[NEOPIXALcount_arm];
++cRGB_t ledStrand_leftUpright[NEOPIXALcount_upright];
++cRGB_t ledStrand_rightUpright[NEOPIXALcount_upright];
++timer_t LED_Flash;
++bool ToggleVal = false;
++void rainBow()
++{
++
++	cRGB_t rgbColour;
++// Start off with red.
++	rgbColour.r = 255;
++	rgbColour.g = 0;
++	rgbColour.b = 0;
++
++// Choose the colours to increment and decrement.
++	for (int decColour = 0; decColour < 3; decColour += 1) {
++		int incColour = decColour == 2 ? 0 : decColour + 1;
++
++		// cross-fade the two colours.
++		for(int i = 0; i < 255; i += 1) {
++			switch (decColour)
++			{
++			case 0:
++				rgbColour.r -= 1;
++				break;
++			case 1:
++				rgbColour.g -= 1;
++				break;
++			case 2:
++				rgbColour.b -= 1;
++				break;
++			}
++			switch (incColour)
++			{
++			case 0:
++				rgbColour.r += 1;
++				break;
++			case 1:
++				rgbColour.g += 1;
++				break;
++			case 2:
++				rgbColour.b += 1;
++				break;
++			}
++
++
++			SetNeoPixRGB(rgbColour.r, rgbColour.g, rgbColour.b);
++			_delay_us(100);
++		}
++	}
++}
++void initLED()
++{
++	setTimerInterval(&LED_Flash, 1000);
++	SetNeoPixRGB(0, 0, 0);
++}
++
+ void SetNeoPixRGB(unsigned int R, unsigned G, unsigned int B)
+ {
+-	for(int counter = 0; counter < 20; counter++)
++	for(int counter = 0; counter < NEOPIXALcount_upright; counter++)
+ 	{
+-		led[counter].r=R;
+-		led[counter].g=G;
+-		led[counter].b=B;
++		ledStrand_leftUpright[counter].r=R;
++		ledStrand_leftUpright[counter].g=G;
++		ledStrand_leftUpright[counter].b=B;
++
++		ledStrand_rightUpright[counter].r=R;
++		ledStrand_rightUpright[counter].g=G;
++		ledStrand_rightUpright[counter].b=B;
++		//led[counter].w=255;
++		_delay_us(1);
++		ws2812_setleds(ledStrand_rightUpright,counter,ws2812_pin4);                        // wait for 500ms.
++		_delay_us(1);
++		ws2812_setleds(ledStrand_leftUpright,counter,ws2812_pin3);                        // wait for 500ms.
++
++		//_delay_ms(100);
++	}
++	for(int counter = 0; counter < NEOPIXALcount_arm; counter++)
++	{
++		ledStrand_leftArm[counter].r=R;
++		ledStrand_leftArm[counter].g=G;
++		ledStrand_leftArm[counter].b=B;
++
++		ledStrand_rightArm[counter].r=R;
++		ledStrand_rightArm[counter].g=G;
++		ledStrand_rightArm[counter].b=B;
+ 		//led[counter].w=255;
+-		ws2812_setleds(led,counter);                        // wait for 500ms.
++		ws2812_setleds(ledStrand_leftArm,counter,ws2812_pin1);                        // wait for 500ms.
++		ws2812_setleds(ledStrand_rightArm,counter,ws2812_pin2);
+ 		//_delay_ms(100);
+ 	}
+ }
+ 
++void flashLedColors(cRGB_t cRGB_1,cRGB_t cRGB_2)
++{
++	if(timerDone(&LED_Flash)) {
++		if(ToggleVal) {
++			SetNeoPixRGB(cRGB_1.r, cRGB_1.g, cRGB_1.b);
++			ToggleVal = false;
++		} else {
++			SetNeoPixRGB(cRGB_2.r, cRGB_2.g, cRGB_2.b);
++			ToggleVal = true;
++		}
++	}
++
++}
+ void setLED(LEDs_ENUMED_t ledNumber, bool state)
+ {
+ 	int ledToSwitch = 0;

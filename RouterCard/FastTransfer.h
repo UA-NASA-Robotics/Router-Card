@@ -3,14 +3,14 @@
  *
  * Created: 10/19/2015 11:32:39 AM
  *  Author: DFT
- */ 
+ */
 
 
 #ifndef FASTTRANSFER_H_
 #define FASTTRANSFER_H_
 
-#define RX_BUFFER_SIZE0 250
-#define RX_BUFFER_SIZE1 250
+#define RX_BUFFER_SIZE0 100
+#define RX_BUFFER_SIZE1 100
 //the capital D is so there is no interference with the lower case d of EasyTransfer
 #define Details(name) (int*)&name,sizeof(name)
 
@@ -38,8 +38,8 @@ unsigned int addressError1(void);
 unsigned int dataAddressError0(void);
 unsigned int dataAddressError1(void);
 
-volatile int receiveArray0[50];
-volatile int receiveArray1[50];
+//volatile int receiveArray0[200];
+//volatile int receiveArray1[200];
 
 void (*serial_write0)(unsigned char);
 void (*serial_write1)(unsigned char);
@@ -81,8 +81,8 @@ unsigned char rx_address0; //RX address received
 unsigned char rx_address1; //RX address received
 
 #define polynomial 0x8C  //polynomial used to calculate crc
-#define BUFFER_SIZE0 200 //ring buffer size
-#define BUFFER_SIZE1 200 //ring buffer size
+#define BUFFER_SIZE0 400 //ring buffer size
+#define BUFFER_SIZE1 400 //ring buffer size
 #define CRC_COUNT 5 // how many AKNAKs are stored
 #define CRC_DEPTH 3  // how many pieces of data are stored with each CRC send event
 #define CRC_BUFFER_SIZE (CRC_COUNT * CRC_DEPTH) //crc buffer size 5 deep and 3 bytes an entry
@@ -106,7 +106,7 @@ struct ringBufS1 ring_buffer1;
 union stuff { // this union is used to join and disassemble integers
 	unsigned char parts[2];
 	unsigned int integer;
-}stuff;
+} stuff;
 union stuff group;
 
 struct crcBufS { // this is where the address where sent to, the sent crc, the status of the AKNAK

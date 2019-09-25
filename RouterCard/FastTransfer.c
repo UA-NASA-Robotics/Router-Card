@@ -11,12 +11,8 @@
 #include <stdlib.h>
 #include <avr/io.h>
 #include "FastTransfer.h"
-<<<<<<< HEAD
-//#include "..\..\..\tracee\Common\CommsDefenition.h"
 #include "Definitions.h"
-=======
-#include "..\..\..\Common\CommsDefenition.h"
->>>>>>> develop
+#include "CommsDefenition.h"
 #include "AT90CAN_UART.h"
 #include "CANFastTransfer.h"
 #include "Config.h"
@@ -40,8 +36,8 @@ int * getReceiveArray0(void)
 
 void initFastTransfer(void)
 {
-	begin0(Receive0, sizeof(Receive0), MotorControllerAddress, 0, &USART0_put_C, &USART0_get_C, &USART0_Available, &USART0_peek_C);
-	begin1(Receive1, sizeof(Receive1), MotorControllerAddress, 0, &USART1_put_C, &USART1_get_C, &USART1_Available, &USART1_peek_C);
+	begin0(Receive0, sizeof(Receive0), RouterCardAddress, 0, &USART0_put_C, &USART0_get_C, &USART0_Available, &USART0_peek_C);
+	begin1(Receive1, sizeof(Receive1), RouterCardAddress, 0, &USART1_put_C, &USART1_get_C, &USART1_Available, &USART1_peek_C);
 }
 //Captures address of receive array, the max data address, the address of the module, true/false if AKNAKs are wanted and the Serial address
 
@@ -174,7 +170,7 @@ bool receiveData0(void) {
 	if (rx_len0 == 0) {
 		
 		//this size check may be redundant due to the size check below, but for now I'll leave it the way it is.
-		if (serial_available0() > 4) {
+		if (serial_available0() > 10) {
 			
 			//this will block until a 0x06 is found or buffer size becomes less then 3.
 			while (serial_read0() != 0x06) {
@@ -190,8 +186,7 @@ bool receiveData0(void) {
 				returnAddress0 = serial_read0(); // pulls where the message came from
 				rx_len0 = serial_read0(); // pulls the length
 				//make sure the address received is a match for this module if not throw the packet away
-				//if (rx_address != moduleAddress) {
-				if (rx_address0 != moduleAddress0 && (rx_address0<RouterCardAddress || rx_address0>BucketAddress)) {
+				if (rx_address0 != moduleAddress0) {
 					addressErrorCounter0++; // increments a counter whenever the wrong address is received
 					//if the address does not match the buffer is flushed for the size of
 					//the data packet plus one for the CRC
@@ -334,8 +329,9 @@ bool receiveData1(void)
 	if (rx_len1 == 0) 
 	{
 		//this size check may be redundant due to the size check below, but for now I'll leave it the way it is.
-		if (serial_available1() > 4) 
+		if (serial_available1() > 5) 
 		{
+			
 			//this will block until a 0x06 is found or buffer size becomes less then 3.
 			while (serial_peek1() != 0x06) 
 			{
@@ -357,12 +353,12 @@ bool receiveData1(void)
 			}
 			if (serial_read1() == 0x85) 
 			{
+				
 				rx_address1 = serial_read1(); // pulls the address
 				returnAddress1 = serial_read1(); // pulls where the message came from
 				rx_len1 = serial_read1(); // pulls the length
 				//make sure the address received is a match for this module if not throw the packet away
-				//if (rx_address != moduleAddress) {
-				if (rx_address1 != moduleAddress1 && (rx_address1<=RouterCardAddress || rx_address1>=BucketAddress)) {
+				if (rx_address1 != moduleAddress1 ) {
 					addressErrorCounter1++; // increments a counter whenever the wrong address is received
 					//if the address does not match the buffer is flushed for the size of
 					//the data packet plus one for the CRC
@@ -423,6 +419,7 @@ bool receiveData1(void)
 							group.parts[0] = rx_buffer1[r + 1];
 							group.parts[1] = rx_buffer1[r + 2];
 							receiveArrayAddress1[(rx_buffer1[r])] = group.integer;
+							
 						}
 						else
 						{

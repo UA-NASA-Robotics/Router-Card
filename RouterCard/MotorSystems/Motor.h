@@ -3,7 +3,7 @@
  *
  * Created: 4/4/2016 8:24:18 PM
  *  Author: reed
- */ 
+ */
 
 #ifndef Motor_H_
 #define Motor_H_
@@ -16,47 +16,22 @@
 #include "MotorSubfunctions.h"
 
 
+#define MotorsCount   4//5
 
+typedef enum {
+	Left=0,
+	Right,
+	Bucket,
+	Arm//,
+	// Plow
+} Speeds;
 
-void testOpenLoopCommandsLeftAndRight(long distance);
-void testOpenLoopCommandsLeftAndRightTurn(long distance);
-void initMotors(void);
+int motorSpeeds[MotorsCount];
+int prevMotorCommand[MotorsCount];
+void MotorsAllStop();
+void initMotors();
+void motorControl(int leftCommand, int rightCommand, int armCommand, int bucketCommand,int plowCommand);
 
-//I like the idea of using these....
-void Motor_Init(int motorID); 
-void Motor_VelMode(int motorID);
-void Motor_MoveCounts(int motorID, int Counts);
-void Motor_PosMode(int motorID);
-void Motor_SetVel(int motorID, int Vel);
-
-
-BOOL BucketMotor_Status();
-void BucketMotor_Init();
-void BucketMotor_VelMode();
-void BucketMotor_PosMode();
-void BucketMotor_SetVel(int Vel); 
-void BucketMotor_SetVelNoCommsSafety(int Vel);
-void BucketMotor_MoveCounts(long Counts); 
-void BucketMotor_MoveCountsNoCommsSafety( long Counts);
-char BucketMotor_GetTemperature();
-char BucketMotor_GetVoltage(); 
-long BucketMotor_GetPos();
-char BucketMotor_Inputs(); 
-void BucketMotor_ReEstablishComms();
-//set limits for motors with limit switches attached.
-void BucketMotor_SetLimit();
-
-BOOL ArmMotor_Status();
-void ArmMotor_Init();
-void ArmMotor_SetVel(int Vel);
-void ArmMotor_SetVelNoCommsSafety(int Vel);
-char ArmMotor_GetTemperature();
-char ArmMotor_GetVoltage();
-long ArmMotor_GetPos();
-void ArmMotor_ReEstablishComms();
-void ArmMotor_CurrentMode();
-void ArmMotor_SetCurrent(int curr);
-void ArmMotor_VelMode();
 
 
 #endif /* Motor_H_ */

@@ -1,0 +1,10 @@
+diff a/RouterCard/light_ws2812.c b/RouterCard/light_ws2812.c	(rejected hunks)
+@@ -30,7 +30,7 @@
+ 
+ void inline ws2812_setleds_pin(cRGB_t *ledarray, uint16_t leds, uint8_t pinmask)
+ {
+-	ws2812_sendarray_mask((uint8_t*)ledarray,leds+leds+leds,pinmask);
++	ws2812_sendarray_mask((uint8_t*)ledarray,leds*3,pinmask);
+ 	_delay_us(ws2812_resettime);
+ }
+ 
