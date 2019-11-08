@@ -4,6 +4,31 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="f1" displayName="CAN_lib" projectFiles="true">
+        <itemPath>CAN_Lib/CANFastTransfer.h</itemPath>
+        <itemPath>CAN_Lib/can.h</itemPath>
+        <itemPath>CAN_Lib/common.h</itemPath>
+        <itemPath>CAN_Lib/definitions.h</itemPath>
+        <itemPath>CAN_Lib/ecan1_config.h</itemPath>
+        <itemPath>CAN_Lib/ecan1drv.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="MCC Generated Files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
+        <itemPath>mcc_generated_files/watchdog.h</itemPath>
+        <itemPath>mcc_generated_files/can1.h</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.h</itemPath>
+        <itemPath>mcc_generated_files/reset.h</itemPath>
+        <itemPath>mcc_generated_files/clock.h</itemPath>
+        <itemPath>mcc_generated_files/traps.h</itemPath>
+        <itemPath>mcc_generated_files/can_types.h</itemPath>
+        <itemPath>mcc_generated_files/system_types.h</itemPath>
+        <itemPath>mcc_generated_files/reset_types.h</itemPath>
+        <itemPath>mcc_generated_files/ecan1.h</itemPath>
+        <itemPath>mcc_generated_files/mcc.h</itemPath>
+        <itemPath>mcc_generated_files/system.h</itemPath>
+      </logicalFolder>
       <itemPath>Init.h</itemPath>
       <itemPath>Config.h</itemPath>
     </logicalFolder>
@@ -14,6 +39,26 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="f1" displayName="CAN_lib" projectFiles="true">
+        <itemPath>CAN_Lib/can.c</itemPath>
+        <itemPath>CAN_Lib/CANFastTransfer.c</itemPath>
+        <itemPath>CAN_Lib/ecan1_config.c</itemPath>
+        <itemPath>CAN_Lib/ecan1drv.c</itemPath>
+        <itemPath>CAN_Lib/traps.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="MCC Generated Files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <itemPath>mcc_generated_files/reset.c</itemPath>
+        <itemPath>mcc_generated_files/system.c</itemPath>
+        <itemPath>mcc_generated_files/can1.c</itemPath>
+        <itemPath>mcc_generated_files/clock.c</itemPath>
+        <itemPath>mcc_generated_files/traps.c</itemPath>
+        <itemPath>mcc_generated_files/ecan1.c</itemPath>
+        <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
+        <itemPath>mcc_generated_files/mcc.c</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.c</itemPath>
+      </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>Init.c</itemPath>
     </logicalFolder>
@@ -21,8 +66,12 @@
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
+      <itemPath>MyConfig.mc3</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>CAN_Lib</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">
