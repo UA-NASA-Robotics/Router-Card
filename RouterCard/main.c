@@ -30,7 +30,7 @@
 
 
 //Time keeps for comms management
-timer_t ledTimer,  checkCANTimer, motorRampTimer,watchDog;
+timer_t  checkCANTimer;
 
 bool flipFlop= true;
 
@@ -42,65 +42,14 @@ int main(void)
 	initCOMs();
 
 
-	setTimerInterval(&ledTimer,1000);
 
-	setTimerInterval(&motorRampTimer,100);
 	setTimerInterval(&checkCANTimer,100);
-	setTimerInterval(&watchDog,100);
-
-
-	//initMotors();
-
 
 	SetNeoPixRGB(100,0,0);
-//  while(1) {
-//    //rainBow();
-//  }
-	//USART1_Flush();
+
 	while(1)
 	{
 
-		//toggleLED(6);
-//    while(1) {
-//      printUART1();
-//    }
-		//BLINK A LIGHT
-		if(timerDone(&ledTimer))
-		{
-			//#ifdef NEW_MAIN
-//      if(flipFlop)
-//      {
-//        setLED(LED6,ON);
-//        flipFlop=false;
-//      }
-//      else
-//      {
-//
-//        flipFlop=true;
-//        setLED(LED6,OFF);
-//
-//      }
-
-			//PORTB ^= (1<<0);
-			//ToSendCAN(0, RouterCardAddress);
-			//ToSendCAN(1, getMacroCommand());
-			//ToSendCAN(2, getMacroSubCommand());
-			//sendDataCAN(NavigationAddress);
-
-//      #else
-//        toggleLED(TEST1);
-//      #endif
-		}
-		// Toggle WatchDog Pin
-//    if(timerDone(&watchDog))
-//    {
-//      DDRB ^= (1<<0); //watch dog pin
-//    }
-
-
-
-		//UPDATE THE COMMUNICATIONS
-		//updateComms();
 		updateComs2();
 
 

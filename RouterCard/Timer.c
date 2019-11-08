@@ -39,7 +39,10 @@ void resetTimer(timer_t * t)
 	unsigned long long timenow=globalTime;
 	t->prevTime=timenow;
 }
-
+unsigned int getTimeElepsed(timer_t * t)
+{
+	return globalTime - t->prevTime;
+}
 bool timerDone(timer_t * t)
 {
 	unsigned long long timenow=globalTime;

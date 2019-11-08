@@ -17,6 +17,7 @@
 #include "CANFastTransfer.h"
 #include "Config.h"
 #include "commsReceive.h"
+#include "PeripheralSystems.h"
 
 //void clearWatchdog(void);
 //Macro storage variables
@@ -32,16 +33,20 @@ unsigned char MacroStatus = Idle;
 #define MACRO_SUB_COMMAND  FT_Read(&Control_ft_handle,MACROSUBCOMMAND);
 
 //Command values stored locally
-int leftMotorCommand= 0, rightMotorCommand=0, armMotorCommand=0, bucketMotorCommand=0, plowMotorCommand=0;
+int leftMotorCommand= 0, rightMotorCommand=0, armMotorCommand=0, actuatorSpeed=0, plowMotorCommand=0;
 timer_t pingTimer,TransmitManual;
-timer_t macroResubmitTimer,ohShitWeAreDeadTimer;
+timer_t macroResubmitTimer;
 timer_t safetyTimer,commsTimer,commsTimerBeacon,checkCANTimer;
-timer_t sendBackTimer, resendMotorTimerRight,resendMotorTimerLeft,resendMotorTimerBucket;
 //Flag that says we are ready to send back to the control box
 bool readyToSend=false;
 void updateCANFTcoms();
 void clearMotorCommandVars();
+bool checkE_Stop();
 void System_STOP();
+void sendMacroCommand();
+void sendManualCommand();
+
+
 //Previous state holders, know when to process updates
 int prevLeftMotorCommand, prevRightMotorCommand, prevBucketCommand, prevArmCommand;
 int previousMacroCommand = STOP_MACRO, previousMacroSubCommand = STOP_MACRO;
@@ -59,7 +64,6 @@ typedef enum {
 char COM_State = UpdateComs;
 
 FT_t  Control_ft_handle;
-//FT_t * Beacon_ft_handle;
 #define  MACRO_FULL 3
 #define  MACRO_PEND 2
 #define  Connected 1
@@ -68,14 +72,13 @@ FT_t  Control_ft_handle;
 char LEDstatus = Disconnected;
 void initCOMs()
 {
+	// Initializing fast transfer for the coms between Controlbox and robot
 	FT_Init(&Control_ft_handle,ROUTER_ADDRESS, USART1_put_C, USART1_get_C, isUART1_ReceiveEmpty);
-	//Beacon_ft_handle = FT_Create( ROUTER_ADDRESS, USART0_put_C, USART0_get_C, isUART0_ReceiveEmpty);
 
 }
 
 void updateComs2(void)
 {
-	//while(1)
 	FT_Receive(&Control_ft_handle);
 	toggleLED(7);
 	switch(COM_State)
@@ -218,13 +221,86 @@ void updateComs2(void)
 	case UpdateManual:
 		//FT_Receive(&Control_ft_handle);
 		if(!timerDone_NoReset(&safetyTimer) && timerDone(&TransmitManual)&& MacroStatus == Idle) {
-			motorControl(leftMotorCommand, rightMotorCommand, bucketMotorCommand, armMotorCommand,plowMotorCommand);
+			motorControl(leftMotorCommand, rightMotorCommand, actuatorSpeed, armMotorCommand,plowMotorCommand);
 		}
 		COM_State = UpdateMacro;
 		break;
 	}
 
 }
+timer_t upTimeCounter;
+unsigned int pendingMacroIndex = 0;
+unsigned int macroSubmitCount = 0;
+void CommunicationsHandle()
+{
+	if(ReceiveDataCAN())
+	{
+		updateCANFTcoms();
+		// TODO: Update global information
+		// Macro Confirmations (Running values given)
+
+	}
+	// if any bytes of date have been received from the control box
+	if(FT_Receive(&Control_ft_handle))
+	{
+		// Parse out the FT data into local variables
+		parseComms();
+		// Check to see if a controlled stop was requested
+		checkE_Stop();
+		// Verify system statuses
+		if(isSystemReady())
+		{
+			// Was Macro information received
+			if(pendingMacroIndex != STOP) {
+				// Only need to send the macro request once in a while
+				if(timerDone(&macroResubmitTimer))
+				{
+					// Keep track of how many times we have submitted so we can back out if we have tried too many times
+					if(macroSubmitCount++ > 5)
+					{
+						pendingMacroIndex = STOP;
+					}
+				}
+			}
+			else if(FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && macroCommand == STOP_MACRO) {
+				// Update Macro System (pending values only given here)
+				pendingMacroIndex = FT_Read(&Control_ft_handle,MACRO_COMMAND_INDEX);
+			}
+			else if(!FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && macroCommand == STOP_MACRO)
+			{
+				// if there hasn't been a macro request then we can send a macro response to the control box of the STOP_MACRO
+				FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
+				// Send the manual commands for the corresponding controller to handle them
+				sendManualCommand();
+			}
+		} else {
+			// Clearing status flag to Reject Macros and send system status
+			FT_Modified (&Control_ft_handle, MACRO_COMMAND_INDEX);
+			FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
+		}
+		//Reply to the Control Box with information (Macro status(ONLY if active), UP time)
+		FT_ToSend(&Control_ft_handle, UPTIME_COUNTER_INDEX, getTimeElepsed(&upTimeCounter));
+		// Reply to the Control Box with information (Macro status(ONLY if active), UP time)
+		FT_Send(&Control_ft_handle, ControlBoxAddressFT);
+
+	}
+	// If there hasn't been a received message from the control box in some amount of time we assume system is
+	// not connected
+	if(timerDone(&safetyTimer))
+	{
+		resetTimer(&upTimeCounter);
+	}
+
+
+}
+bool checkE_Stop() {
+	if(FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && FT_Read(&Control_ft_handle, MACRO_COMMAND) == STOP_MACRO) {
+		System_STOP();
+		return true;
+	}
+	return false;
+}
+
 void System_STOP()
 {
 	MacroStatus = Idle;
@@ -246,212 +322,35 @@ void System_STOP()
 	motorControl(0, 0, 0, 0, 0);
 }
 
-void updateComms(void)
-{
-//  setTimerInterval(&commsTimer,200);
-//  while(1)
-//  {
-//    if(timerDone(&commsTimer))
-//    {
-//
-//      ToSend1(1, 0);
-//      sendData1(ControlBoxAddress);
-//    }
-//  }
-
-	updateCANFTcoms();
-	//updateCommsBeacon(LIDAR_IDLE_STATE);
-
-	//If we have heard from the control box and waited a short time before we are now going to send back
-	if(readyToSend && timerDone(&sendBackTimer))
-	{
-		//Return comms to the control box
-		ToSend1(0,4);
-		ToSend1(1,macroCommand);
-		ToSend1(2,macroSubCommand);
-		sendData1(ControlBoxAddressFT);
-
-		//Mark that we have responded (wait for next comms incoming)
-		readyToSend=false;
-
-		//If the macro has not been processed yet
-		if((macroCommand!=0 && previousMacroCommand==0))// && (timerDone(&macroResubmitTimer) || macroCompletedLongAgo) )//|| (previousMacroSubCommand!=macroSubCommand))
-		{
-			toggleLED(4);
-//      //Send to the sensor/navi an update of the macro state
-			ToSendCAN(0, RouterCardAddress);
-			ToSendCAN(CAN_COMMAND_INDEX, macroCommand);
-			ToSendCAN(CAN_COMMAND_DATA_INDEX, macroSubCommand);
-			sendDataCAN(MasterAddress);
-
-			setCANFTdata(CAN_COMMAND_INDEX,1);
-
-
-			//Mark that we have updated them
-			previousMacroCommand=1;
-		}
-		else if (macroCommand==0 && previousMacroCommand!=0)
-		{
-			previousMacroCommand=0;
-			ToSendCAN(0, RouterCardAddress);
-			ToSendCAN(CAN_COMMAND_INDEX, macroCommand);
-			ToSendCAN(CAN_COMMAND_DATA_INDEX, macroSubCommand);
-			sendDataCAN(MasterAddress);
-
-			setCANFTdata(CAN_COMMAND_INDEX,0);
-
-		}
-		else if(timerDone(&macroResubmitTimer) && !macroCompletedLongAgo)
-		{
-
-			macroCompletedLongAgo=true;
-			macroCommand=0;
-			macroSubCommand=0;
-		}
-	}
-
-	if(timerDone(&commsTimer)) //Check the comms when the timer says to
-	{
-		bool gotData=false;
-
-		//If there is a new incoming data packet from the control box
-		if(receiveData1())  //PULL IT ALL OUT
-		{
-			//PORTA^=(0x80); //Toggle A7 when received
-			gotData=true;
-
-
-			resetTimer(&ohShitWeAreDeadTimer);
-		}
-
-		//ONLY PROCESS DATA IF THE RECEIVE LOOP GOT DATA
-		if(gotData)
-		{
-
-			//Look through the packet and sort incoming data
-			parseComms();
-
-#ifdef NEW_MAIN
-			//Debug LEDs
-			toggleLED(LED12);
-#endif
-
-			//If we are currently in manual drive mode then send motor commands
-			if(macroCommand==0)//manualMode())
-			{
-				//toggleLED(11);
-//        if(abs(leftMotorCommand)>0)
-//        {
-//          setLED(11,1);
-//        }
-//        else
-//        {
-//          setLED(11,0);
-//        }
-				//toggleLED(8);
-				//TODO: Call motor run
-				motorControl(leftMotorCommand, rightMotorCommand, bucketMotorCommand, armMotorCommand,plowMotorCommand);
-				//setLED(2,ON);
-
-			}
-			else    //Else we are not in manual mode (meaning there is a macro present)
-			{
-				MacroStatus = Active;
-
-#ifdef MACROS_RESET_ROUTER
-				//IF the macro sent is the fully autonomous macro, then the watchdog is enabled, and forgotten... causing a system reboot on this end..
-				if(macroCommand==7)
-					WDTCR= (1<<3)| (0b00000111);    //Enable watchdog with prescaler 111
-#endif
-
-#ifdef NEW_MAIN
-				//setLED(LED2,OFF);
-#endif
-			}
-
-			//Mark that we heard from the control, and we are ready to send back
-			readyToSend=true;
-
-			//Reset the safety timeout
-			resetTimer(&safetyTimer);
-
-			//Reset the timer to delay a short while before sending back
-			resetTimer(&sendBackTimer);
-		}
-		//Reset the check comms timer
-		resetTimer(&commsTimer);
-	}
-
-	if(timerDone(&safetyTimer))
-	{
-		//MotorsAllStop();
-		clearMotorCommandVars();
-		//Send a packet to the control box to reestablish communications
-#ifdef SEND_TO_CONTROL_FOR_COMMS_ESTABLISH
-		ToSend1(0,4);
-		ToSend1(1,macroCommand);
-		sendData1(ControlBoxAddress);
-#endif
-
-		//Indicator that we are in comms safety loop
-		toggleLED(8);
-		resetTimer(&safetyTimer);
-		if(timerDone(&ohShitWeAreDeadTimer))
-		{
-			WDTCR= (1<<3)| (0b00000111);    //Enable watchdog with prescaler 111
-
-		}
-	}
-	else
-	{
-	}
-}
-
 void updateCANFTcoms()
 {
 	if (timerDone(&checkCANTimer))
 	{
 		if(ReceiveDataCAN())
 		{
-			toggleLED(LED4);
-			//if(getCANFTdata(SENDER_ADDRESS_INDEX) == MasterAddress)
-			//{
-			//updateCommsBeacon(getCANFTdata(REQUEST_BEACON_DATA));
-			clearMotorCommandVars(REQUEST_BEACON_DATA);
-			clearMotorCommandVars(SENDER_ADDRESS_INDEX);
-			//}
-			if( macroCommand != 0  && (getCANFTdata(CAN_COMMAND_INDEX) == 0))// && (timerDone(&macroResubmitTimer) || macroCompletedLongAgo))
-			{
-				setLED(3,OFF);
-				//wipeRxBuffer1();
 
-				ToSend1(1, 0);
-				ToSend1(2, 0);
-				sendData1(ControlBoxAddress);
-				macroCommand=0;
-				macroSubCommand=0;
-
-
-				//readyToSend = TRUE;
-				_delay_ms(50);
-				//USART1_Flush();
-				ToSend1(1, 0);
-				sendData1(ControlBoxAddress);
-
-				resetTimer(&macroResubmitTimer);
-				macroCompletedLongAgo=false;
-
-
-				//_delay_ms(50);
-				//ToSend1(1, 0);
-				//sendData1(ControlBoxAddress);
-				//while(1);
-			}
 
 		}
 	}
 }
+void sendMacroCommand()
+{
+	// Loading the CAN FastTransfer buffer with macro data
+	ToSendCAN(MACRO_COMMAND_INDEX, FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX));
+	ToSendCAN(CAN_COMMAND_DATA_INDEX,FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
+	// Sending.... the data on the CAN bus to the Master Controller for processing
+	sendDataCAN(MasterAddress);
+}
+void sendManualCommand()
+{
+	ToSendCAN(LEFTMOTORSPEED,leftMotorCommand);
+	ToSendCAN(RIGHTMOTORSPEED,rightMotorCommand);
+	ToSendCAN(ACTUATORSPEED,actuatorSpeed);
+	ToSendCAN(ARMSPEED,armMotorCommand);
+	ToSendCAN(PLOWSPEED,plowMotorCommand);
+	sendDataCAN(MOTOR_ADDRESS);
 
+}
 
 void clearMotorCommandVars()
 {
@@ -460,7 +359,7 @@ void clearMotorCommandVars()
 	leftMotorCommand    =0;
 	rightMotorCommand   =0;
 
-	bucketMotorCommand    =0;
+	actuatorSpeed  =0;
 	armMotorCommand     =0;
 	plowMotorCommand    =0;
 
@@ -476,7 +375,6 @@ void clearMotorCommandVars()
 }
 void parseComms(void)
 {
-	//if(&Control_ft_handle != NULL)
 
 
 #ifndef REVERSE_LEFT_RIGHT
@@ -487,7 +385,7 @@ void parseComms(void)
 	rightMotorCommand   =(int)FT_Read(&Control_ft_handle, LEFTMOTORSPEED);
 #endif
 
-	bucketMotorCommand  =   FT_Read(&Control_ft_handle, ACTUATORSPEED);
+	actuatorSpeed  =   FT_Read(&Control_ft_handle, ACTUATORSPEED);
 	armMotorCommand     =   FT_Read(&Control_ft_handle, ARMSPEED);
 	plowMotorCommand    = FT_Read(&Control_ft_handle,PLOWSPEED);
 
@@ -503,16 +401,11 @@ bool manualMode(void)
 
 void setupCommsTimers(void)
 {
-	setTimerInterval(&ohShitWeAreDeadTimer,10000);
 	setTimerInterval(&macroResubmitTimer,500);
 	setTimerInterval(&pingTimer,500);
 	setTimerInterval(&commsTimer,5);
 	setTimerInterval(&commsTimerBeacon,5);
-	setTimerInterval(&sendBackTimer, 1);
 	setTimerInterval(&safetyTimer,2000);
-	setTimerInterval(&resendMotorTimerRight,50);
-	setTimerInterval(&resendMotorTimerLeft,50);
-	setTimerInterval(&resendMotorTimerBucket,50);
 	setTimerInterval(&checkCANTimer,50);
 	setTimerInterval(&TransmitManual, 50);
 }
@@ -534,7 +427,7 @@ int getArmMotorCommand(void)
 
 int getBucketMotorCommand(void)
 {
-	return bucketMotorCommand;
+	return actuatorSpeed;
 }
 
 int getMacroCommand(void)
