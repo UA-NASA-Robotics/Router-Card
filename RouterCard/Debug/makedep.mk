@@ -28,11 +28,7 @@ light_ws2812.c
 
 main.c
 
-MotorSystems\Motor.c
-
-MotorSystems\motorHandler.c
-
-MotorSystems\MotorSubfunctions.c
+peripheralSystems.c
 
 PointerList.c
 

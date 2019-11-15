@@ -23,7 +23,6 @@
 //#define BAUD_125K
 
 #include "avr/interrupt.h"
-#include "general.h"
 #include "assert.h"
 #include "can.h"
 #include "Config.h"
@@ -148,7 +147,7 @@ ISR( CANIT_vect)
 
 }
 
-BOOL can_tx_kick(char mob) //used to start transmission, interrupt will send rest of buffer
+bool can_tx_kick(char mob) //used to start transmission, interrupt will send rest of buffer
 {
 	static CAN_packet packet;
 //  if (
@@ -157,14 +156,14 @@ BOOL can_tx_kick(char mob) //used to start transmission, interrupt will send res
 //    ( (CANSTMOB & 0x40) ==0)   // TX not ready
 //  ) {
 //    USART0_put_C(0xBB);
-//    return FALSE;
+//    return false;
 //  }
 	canlist[ mob]( &packet, mob); //if data remains in send buffer
 	unsigned char cnt;
 	CANPAGE = mob << 4;
 	if(packet.length == 0)
 	{
-		return FALSE; //no data to send
+		return false; //no data to send
 	}
 
 	CANSTMOB = 0x00;      // cancel pending operation
@@ -196,10 +195,10 @@ BOOL can_tx_kick(char mob) //used to start transmission, interrupt will send res
 	}
 	CANCDMOB = 0x40 + packet.length;
 
-	return TRUE;
+	return true;
 }
 
-BOOL can_tx( char mob,  CAN_packet *packet) //leaving this here for legacy
+bool can_tx( char mob,  CAN_packet *packet) //leaving this here for legacy
 {
 	unsigned cnt;
 	ASSERT( packet->id <= 0x7ff);
@@ -212,7 +211,7 @@ BOOL can_tx( char mob,  CAN_packet *packet) //leaving this here for legacy
 		&&
 		( (CANSTMOB & 0x40) ==0)   // TX not ready
 	)
-		return FALSE;
+		return false;
 
 	CANSTMOB = 0x00;      // cancel pending operation
 	CANCDMOB = 0x00;
@@ -234,13 +233,13 @@ BOOL can_tx( char mob,  CAN_packet *packet) //leaving this here for legacy
 	}
 	CANCDMOB = 0x40 + packet->length;
 
-	return TRUE;
+	return true;
 }
 
-BOOL prepare_rx( char mob, unsigned id, unsigned idmask, CAN_cbf callback)
+bool prepare_rx( char mob, unsigned id, unsigned idmask, CAN_cbf callback)
 {
 	if( mob >= 15)        // illegal MOB number
-		return TRUE;
+		return true;
 	canlist[ (unsigned)mob]=callback;
 
 	CANPAGE = mob << 4;
@@ -251,10 +250,10 @@ BOOL prepare_rx( char mob, unsigned id, unsigned idmask, CAN_cbf callback)
 		unsigned mask=1<<mob;
 		CANIE2 &=  ~mask;
 		CANIE1 &= ~(mask>>8);
-		return FALSE;
+		return false;
 	}
 	if( CANCDMOB & 0b11000000)  // if MOB already in use
-		return TRUE;      // no vacancy ...
+		return true;      // no vacancy ...
 	CANSTMOB = 0x00;      // cancel pending operation
 	CANCDMOB = 0x00;
 	CANHPMOB = 0x00;    // enable direct mob indexing, see docu
@@ -268,13 +267,13 @@ BOOL prepare_rx( char mob, unsigned id, unsigned idmask, CAN_cbf callback)
 	unsigned mask=1<<mob;
 	CANIE2 |=  mask;
 	CANIE1 |= (mask>>8);
-	return FALSE;
+	return false;
 }
 
-BOOL prepare_tx( char mob, unsigned id, unsigned idmask, CAN_cbf callback)
+bool prepare_tx( char mob, unsigned id, unsigned idmask, CAN_cbf callback)
 {
 	if( mob >= 15)        // illegal MOB number
-		return TRUE;
+		return true;
 	canlist[ (unsigned)mob]=callback;
 
 	CANPAGE = mob << 4;
@@ -285,10 +284,10 @@ BOOL prepare_tx( char mob, unsigned id, unsigned idmask, CAN_cbf callback)
 		unsigned mask=1<<mob;
 		CANIE2 &=  ~mask;
 		CANIE1 &= ~(mask>>8);
-		return FALSE;
+		return false;
 	}
 	if( CANCDMOB & 0b11000000)  // if MOB already in use
-		return FALSE;     // no vacancy ...
+		return false;     // no vacancy ...
 	CANSTMOB = 0x00;      // cancel pending operation
 	CANCDMOB = 0x00;
 	CANHPMOB = 0x00;    // enable direct mob indexing, see docu
@@ -298,7 +297,7 @@ BOOL prepare_tx( char mob, unsigned id, unsigned idmask, CAN_cbf callback)
 	unsigned mask=1<<mob;
 	CANIE2 |=  mask;
 	CANIE1 |= (mask>>8);
-	return TRUE;
+	return true;
 }
 
 void can_init( void)

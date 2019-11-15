@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-//#include <stdio.h>
+#include <stdio.h>
 #include <avr/interrupt.h>
 #include "AT90CAN_UART.h"
 #include "LEDs.h"
@@ -31,6 +31,9 @@ char uart0_RXbuff[UART0_RX_Buffer_Size];
 circular_buffer UART0_RX_Buffer;
 
 char received;
+int uart_putchar(char c, FILE *stream);
+
+static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
 
 void myMemCpy(void *dest, void *src, size_t n)
 {
@@ -52,6 +55,14 @@ void printUART1()
 		//if(tmp != 0xFF)
 		//USART0_put_C ((unsigned char*)UART1_RX_Buffer.head);
 	}
+}
+int uart_putchar(char c, FILE *stream)
+{
+	if (c == '\n') uart_putchar('\r', stream);
+
+	USART0_put_C (c);
+
+	return 0;
 }
 
 void cb_init(circular_buffer *cb, char *buf, int capacity, int sz)
@@ -144,6 +155,7 @@ void USART0_Init( unsigned long baud) {
 	UCSR0C  = (0<<UMSEL0) | (0<<UPM0) | (1<<USBS0) | (1<<UCSZ00) | (1<<UCSZ01);
 	UCSR0B = (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0);
 
+	stdout = &mystdout;
 
 }
 
@@ -175,10 +187,10 @@ void USART1_Init( unsigned long baud) {
 
 
 }
-// void mon_putc (char ch)
-// {
-//  USART0_put_C(ch);
-// }
+void mon_putc (char ch)
+{
+	USART0_put_C(ch);
+}
 void uartPush(circular_buffer * cb, unsigned char data)
 {
 

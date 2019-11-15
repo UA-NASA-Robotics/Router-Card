@@ -12,27 +12,6 @@
 // *******************************************
 // *******************************************
 
-#define ControlBoxAddressFT 1
-
-//4 Router Card
-#define RouterCardAddress 4
-
-//5 Master Navi PIC
-#define MasterAddress 5
-
-//#define maxDataAddressNavigation 50
-#define MotorAddress  6
-
-//7 Gyro PIC
-#define GyroAddress   7
-
-//8 Electro Statics/Bucket Shaker
-#define BucketAddress     8
-
-
-
-
-
 //CAN INDEXs
 
 #define CAN_COMMAND_INDEX       8

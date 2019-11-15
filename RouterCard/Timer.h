@@ -22,7 +22,7 @@ bool timerDone(timer_t * t);
 bool timerDone_NoReset(timer_t * t);
 void setTimerInterval(timer_t * t, unsigned long long l);
 void resetTimer(timer_t * t);
-
+unsigned long long millis();
 
 
 #endif /* TIMER_H_ */

@@ -2,7 +2,10 @@
  * commsReceive.h
  *
  * Created: 4/26/2017 2:22:33 PM
- *  Author: Zac
+ *  Author: Seth Carpenter
+ *
+ *
+ * System wiki : https://github.com/UA-NASA-Robotics/ROCKEE_Router-Card/wiki
  */
 
 
@@ -30,11 +33,7 @@ void updateComs2(void);
 void parseComms(void);
 int getMacroCommand(void);
 int getMacroSubCommand(void);
-int getLeftMotorCommand(void);
-int getRightMotorCommand(void);
-int getArmMotorCommand(void);
-int getBucketMotorCommand(void);
-void updateCommsBeacon(int command);
+
 void setMacroCommand(int m);
 void setMacroSubCommand(int ms);
 

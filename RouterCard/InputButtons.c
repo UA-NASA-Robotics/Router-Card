@@ -3,7 +3,7 @@
  *
  * Created: 5/4/2017 9:57:10 AM
  *  Author: Zac
- */ 
+ */
 #include "InputButtons.h"
 #include "Config.h"
 #include "CANFastTransfer.h"
@@ -20,33 +20,33 @@ bool buttonPressed(buttonList_t b)
 {
 	switch(b)
 	{
-		#ifndef NEW_MAIN
-			case SPECIAL:
-				return (!(PINC & (1<<PINC0)));
-				break;
-			case DWN:
-				return (!(PINC & (1<<PINC1)));
-				break;
-			case UP:
-				return (!(PINC & (1<<PINC2)));
-				break;
-			case BCK:
-				return (!(PINA & (1<<PINA7)));			
-				break;
-		#else
-			case SPECIAL:
-				return (!(PINC & (1<<PINC0)));
-				break;
-			case DWN:
-				return (!(PINC & (1<<PINC1)));
-				break;
-			case UP:
-				return (!(PINC & (1<<PINC2)));
-				break;
-			case BCK:
-				return (!(PING & (1<<PING2)));
-				break;
-		#endif
+#ifndef NEW_MAIN
+	case SPECIAL:
+		return (!(PINC & (1<<PINC0)));
+		break;
+	case DWN:
+		return (!(PINC & (1<<PINC1)));
+		break;
+	case UP:
+		return (!(PINC & (1<<PINC2)));
+		break;
+	case BCK:
+		return (!(PINA & (1<<PINA7)));
+		break;
+#else
+	case SPECIAL:
+		return (!(PINC & (1<<PINC0)));
+		break;
+	case DWN:
+		return (!(PINC & (1<<PINC1)));
+		break;
+	case UP:
+		return (!(PINC & (1<<PINC2)));
+		break;
+	case BCK:
+		return (!(PING & (1<<PING2)));
+		break;
+#endif
 	}
 	return false;
 }
@@ -60,48 +60,48 @@ void buttonsInputTest(void)
 {
 	if(buttonPressed(DWN))
 	{
-		#ifdef LEFTMOTOR_TEST
+#ifdef LEFTMOTOR_TEST
 		LeftMotor_SetVelNoCommsSafety(1500);
-		#elif defined RIGHTMOTOR_TEST
+#elif defined RIGHTMOTOR_TEST
 		//RightMotor_SetVelNoCommsSafety(1500);
 		RightMotorSendVel(100);
-		#elif defined ARM_TEST
+#elif defined ARM_TEST
 		ArmMotor_SetVelNoCommsSafety(100);
-		#elif defined BUCKET_TEST
+#elif defined BUCKET_TEST
 		BucketMotor_SetVelNoCommsSafety(-200);
 		//long Resolution = 4096;
 		//long Ratio = 50;
 		//long counts = Resolution*Ratio;
 		//BucketMotor_MoveCounts(counts); //4096 counts/rev * 50:1 gear box ratio.
-		#endif
+#endif
 		_delay_ms(10);
 	}
 	else if(buttonPressed(UP))
 	{
-		#ifdef LEFTMOTOR_TEST
+#ifdef LEFTMOTOR_TEST
 		LeftMotor_SetVelNoCommsSafety(-1500);
-		#elif defined RIGHTMOTOR_TEST
+#elif defined RIGHTMOTOR_TEST
 		//RightMotor_SetVelNoCommsSafety(-1500);
 		RightMotorSendVel(-100);
-		#elif defined ARM_TEST
+#elif defined ARM_TEST
 		ArmMotor_SetVelNoCommsSafety(-500);
-		#elif defined BUCKET_TEST
+#elif defined BUCKET_TEST
 		BucketMotor_SetVelNoCommsSafety(200);
-		#endif
+#endif
 		_delay_ms(10);
 	}
 	else if(buttonPressed(BCK))
 	{
-		#ifdef LEFTMOTOR_TEST
+#ifdef LEFTMOTOR_TEST
 		LeftMotor_SetVelNoCommsSafety(0);
-		#elif defined RIGHTMOTOR_TEST
+#elif defined RIGHTMOTOR_TEST
 		RightMotorSendVel(0);
 		//RightMotor_SetVelNoCommsSafety(0);
-		#elif defined ARM_TEST
+#elif defined ARM_TEST
 		ArmMotor_SetVelNoCommsSafety(0);
-		#elif defined BUCKET_TEST
+#elif defined BUCKET_TEST
 		BucketMotor_SetVelNoCommsSafety(0);
-		#endif
+#endif
 		_delay_ms(10);
 	}
 	else if(buttonPressed(SPECIAL))
@@ -111,11 +111,11 @@ void buttonsInputTest(void)
 		{
 			setLED(4,ON);
 			//Send to the sensor/navi an update of the macro state
-			ToSendCAN(0, RouterCardAddress);	//From Router Card
-			ToSendCAN(1, TURNING);				//Macro Command
-			ToSendCAN(2, 45);					//Macro sub-command
-			sendDataCAN(MasterAddress);			//To sensor card
-			ON_OFF=true;		
+			ToSendCAN(0, ROUTER_ADDRESS);  //From Router Card
+			ToSendCAN(1, TURNING);        //Macro Command
+			ToSendCAN(2, 45);         //Macro sub-command
+			sendDataCAN(MASTER_ADDRESS);      //To sensor card
+			ON_OFF=true;
 			setMacroSubCommand(45);
 			setMacroCommand(TURNING);
 		}
@@ -123,17 +123,17 @@ void buttonsInputTest(void)
 		{
 			setLED(4,OFF);
 			//Send to the sensor/navi an update of the macro state
-			ToSendCAN(0, RouterCardAddress);	//From Router Card
-			ToSendCAN(1, 0);				//Macro Command
-			ToSendCAN(2, 0);					//Macro sub-command
-			sendDataCAN(MasterAddress);			//To sensor card
+			ToSendCAN(0, ROUTER_ADDRESS);  //From Router Card
+			ToSendCAN(1, 0);        //Macro Command
+			ToSendCAN(2, 0);          //Macro sub-command
+			sendDataCAN(MASTER_ADDRESS);      //To sensor card
 			ON_OFF=false;
 			setMacroSubCommand(0);
 			setMacroCommand(0);
-			
+
 		}
-		_delay_ms(250);	
-			
+		_delay_ms(250);
+
 	}
 }
 

@@ -214,7 +214,7 @@
     <Compile Include="FastTransfer\ft_impl\parser.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="general.h">
+    <Compile Include="GlobalCAN_IDs.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Init.c">
@@ -247,27 +247,6 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="MotorSystems\Motor.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="MotorSystems\Motor.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="MotorSystems\MotorDefines.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="MotorSystems\motorHandler.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="MotorSystems\motorHandler.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="MotorSystems\MotorSubfunctions.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="MotorSystems\MotorSubfunctions.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="peripheralSystems.c">
       <SubType>compile</SubType>
     </Compile>
@@ -298,7 +277,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="FastTransfer\ft_impl" />
-    <Folder Include="MotorSystems" />
     <Folder Include="FastTransfer" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />

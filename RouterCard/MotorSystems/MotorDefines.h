@@ -18,7 +18,6 @@
 #include "../SDO.h"
 #include "../can.h"
 #include "../AT90CAN_UART.h"
-#include "../general.h"
 #include "../assert.h"
 
 typedef enum
@@ -43,7 +42,7 @@ typedef struct
 	int       MAX_RPM;
 	int       MAX_CURRENT;
 	unsigned long ACCEL;
-	BOOL      isBrushless;
+	bool      isBrushless;
 	LimitSwitch_t LimitSwitch;
 
 	//bool  CANenabled;

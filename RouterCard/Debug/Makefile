@@ -34,7 +34,6 @@ LINKER_SCRIPT_DEP:=
 # Every subdirectory with source files must be described here
 SUBDIRS :=  \
 ../FastTransfer/ft_impl \
-../MotorSystems \
 ../FastTransfer
 
 
@@ -53,9 +52,7 @@ C_SRCS +=  \
 ../LEDs.c \
 ../light_ws2812.c \
 ../main.c \
-../MotorSystems/Motor.c \
-../MotorSystems/motorHandler.c \
-../MotorSystems/MotorSubfunctions.c \
+../peripheralSystems.c \
 ../PointerList.c \
 ../SDO.c \
 ../Timer.c
@@ -81,9 +78,7 @@ InputButtons.o \
 LEDs.o \
 light_ws2812.o \
 main.o \
-MotorSystems/Motor.o \
-MotorSystems/motorHandler.o \
-MotorSystems/MotorSubfunctions.o \
+peripheralSystems.o \
 PointerList.o \
 SDO.o \
 Timer.o
@@ -102,9 +97,7 @@ InputButtons.o \
 LEDs.o \
 light_ws2812.o \
 main.o \
-MotorSystems/Motor.o \
-MotorSystems/motorHandler.o \
-MotorSystems/MotorSubfunctions.o \
+peripheralSystems.o \
 PointerList.o \
 SDO.o \
 Timer.o
@@ -123,9 +116,7 @@ InputButtons.d \
 LEDs.d \
 light_ws2812.d \
 main.d \
-MotorSystems/Motor.d \
-MotorSystems/motorHandler.d \
-MotorSystems/MotorSubfunctions.d \
+peripheralSystems.d \
 PointerList.d \
 SDO.d \
 Timer.d
@@ -144,9 +135,7 @@ InputButtons.d \
 LEDs.d \
 light_ws2812.d \
 main.d \
-MotorSystems/Motor.d \
-MotorSystems/motorHandler.d \
-MotorSystems/MotorSubfunctions.d \
+peripheralSystems.d \
 PointerList.d \
 SDO.d \
 Timer.d
@@ -256,21 +245,7 @@ FastTransfer/ft_impl/parser.o: ../FastTransfer/ft_impl/parser.c
 	@echo Finished building: $<
 	
 
-MotorSystems/Motor.o: ../MotorSystems/Motor.c
-	@echo Building file: $<
-	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.106\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -Wextra -mmcu=at90can128 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.106\gcc\dev\at90can128" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
-	@echo Finished building: $<
-	
-
-MotorSystems/motorHandler.o: ../MotorSystems/motorHandler.c
-	@echo Building file: $<
-	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.106\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -Wextra -mmcu=at90can128 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.106\gcc\dev\at90can128" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
-	@echo Finished building: $<
-	
-
-MotorSystems/MotorSubfunctions.o: ../MotorSystems/MotorSubfunctions.c
+./peripheralSystems.o: .././peripheralSystems.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.106\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -Wextra -mmcu=at90can128 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.106\gcc\dev\at90can128" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

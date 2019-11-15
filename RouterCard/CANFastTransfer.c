@@ -6,6 +6,7 @@
  *  Author: reed
  */
 #include <avr/io.h>
+#include "Definitions.h"
 #include "CANFastTransfer.h"
 #include "can.h"
 #include "assert.h"
@@ -20,7 +21,9 @@
 #include <stdlib.h>
 #define Instant  0
 #define WhenReceiveCall  1
-#define CAN_RECIEVE_SIZE   10
+
+
+
 
 int receiveMode = 0;
 struct Node * head = NULL;
@@ -31,14 +34,15 @@ struct ringBufSCAN ring_buffer_CAN_Control;
 struct ringBufSCAN ring_buffer_CAN_Beacon;
 int ReceivedData = 0;
 int TransmitSetMissMatch = 0;
-int CAN_FT_recievedFlag[CAN_RECIEVE_SIZE];
 
-int ReceiveCAN[CAN_RECIEVE_SIZE];
+
+
 
 
 void initCANFastTransfer(void)
 {
-	beginCANFast(ReceiveCAN, sizeof(ReceiveCAN), RouterCardAddress);
+	beginCANFast(ReceiveCAN, GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV/*sizeof(ReceiveCAN)*/, ROUTER_ADDRESS);
+
 }
 //Start Receive Functions
 
@@ -49,7 +53,7 @@ void ReceiveCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 
 	if(receiveMode == WhenReceiveCall)
 	{
-		if(p->length == 8 || p->length == 9) //Check number of bytes, if 8 read in two ints
+		if(p->length == 8 || p->length == 9) //Check number of bytes, if 8 read in two integers
 		{
 			if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
 				Send_buffer_put(&ReceiveBuffer, (p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
@@ -74,18 +78,23 @@ void ReceiveCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 	} //end wait receive mode
 	else //instant
 	{
+
+
+		bool isGlobal = false;
+		if((p->id >> 6) & (0b11111) == GLOBAL_CAN_ADDRESS)
+			isGlobal = true;
 		//receiveArrayAddressCAN[LastBoardReceived]= (p->id & 0b11111); //set last board received
-		setCANFTdata(LastBoardReceived,  (p->id & 0b11111));
+		setCANFTdata(LastBoardReceived,  (p->id & 0b11111),isGlobal);
 		if(p->length == 8 || p->length == 9) //Check number of bytes, if 8 read in two ints
 		{
 			if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
 				//receiveArrayAddressCAN[(p->data[0]<<8) +(p->data[1])] = (p->data[2]<<8) +(p->data[3]);
-				setCANFTdata((p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
+				setCANFTdata((p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]),isGlobal);
 				ReceivedData = 1;
 			}
 			if((p->data[4]<<8) +(p->data[5]) < MaxIndex) {
 				//receiveArrayAddressCAN[(p->data[4]<<8) +(p->data[5])] = (p->data[6]<<8) +(p->data[7]);
-				setCANFTdata((p->data[4]<<8) +(p->data[5]), (p->data[6]<<8) +(p->data[7]));
+				setCANFTdata((p->data[4]<<8) +(p->data[5]), (p->data[6]<<8) +(p->data[7]),isGlobal);
 				ReceivedData = 1;
 			}
 
@@ -94,7 +103,7 @@ void ReceiveCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 		{
 			if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
 				//receiveArrayAddressCAN[(p->data[0]<<8) +(p->data[1])] = (p->data[2]<<8) +(p->data[3]);
-				setCANFTdata((p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
+				setCANFTdata((p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]),isGlobal);
 				ReceivedData = 1;
 			}
 		}
@@ -198,7 +207,7 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 		//if more than 2 data/index pairs left might be able to send large packet.
 		if(Transmit_buffer_GetCount(&TransmitBuffer)>6) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
-			p->id = ( address << 6) + RouterCardAddress; //not passed through messages will have wrong sender address
+			p->id = ( address << 6) + ROUTER_ADDRESS; //not passed through messages will have wrong sender address
 			//we are good to send the first index/value pair for sure.
 			for(int i = 0; i<2; i++) {
 				unsigned int temp = Transmit_buffer_get(&TransmitBuffer);
@@ -234,7 +243,7 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 		//note: still need to check incase two different destinations.
 		else if(Transmit_buffer_GetCount(&TransmitBuffer)==6) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
-			p->id = ( address << 6) + RouterCardAddress; //not passed through messages will have wrong sender address
+			p->id = ( address << 6) + ROUTER_ADDRESS; //not passed through messages will have wrong sender address
 			//we are good to send the first index/value pair for sure.
 			for(int i = 0; i<2; i++) {
 				unsigned int temp = Transmit_buffer_get(&TransmitBuffer);
@@ -261,7 +270,7 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 		//if only 1 data/index pair receiver will know it is the last packet.
 		else if(Transmit_buffer_GetCount(&TransmitBuffer)==3) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
-			p->id = ( address << 6) + RouterCardAddress; //not passed through messages will have wrong sender address
+			p->id = ( address << 6) + ROUTER_ADDRESS; //not passed through messages will have wrong sender address
 			p->length = 4;
 			for(int i = 0; i<2; i++) {
 				unsigned int temp = Transmit_buffer_get(&TransmitBuffer);
@@ -294,8 +303,9 @@ void beginCANFast(volatile int * ptr, unsigned int maxSize, unsigned char givenA
 	moduleAddressCAN = givenAddress;
 	MaxIndex = maxSize;
 
-	BOOL ret;
-	ret=prepare_rx( CANFAST_MOB, moduleAddressCAN<<6, 0b11111100000, ReceiveCANFast); //all 1s forces comparison
+	bool ret;
+	ret=prepare_rx( CANFAST_MOB, moduleAddressCAN<<6, 0b11111100000, ReceiveCANFast); // all 1s forces comparison
+	ret+=prepare_rx(CONTROL_MOB,GLOBAL_CAN_ADDRESS<<6, 0b11111100000,ReceiveCANFast); // Initialization the Receiver for the Global Bus
 	ASSERT( ret==0);
 
 #ifndef DISABLE_CAN_FORWARDING_RECEIVE
@@ -319,31 +329,43 @@ void SetReceiveMode(int input) {
 		receiveMode = input;
 	}
 }
-void setCANFTdata(int index, int val)
+void setCANFTdata(int index, int val,bool isGlobal)
 {
-	receiveArrayAddressCAN[index]=val;
-	CAN_FT_recievedFlag[index] = TRUE;
+	if(isGlobal)
+	{
+		receiveArrayCAN_Global[index ] = val;
+		GBL_CAN_FT_recievedFlag[index]=true;
+
+	} else {
+
+		receiveArrayAddressCAN[index]=val;
+		CAN_FT_recievedFlag[index] = true;
+	}
 
 }
-int getCANFTdata(int index)
+int getCANFTdatas(int index,bool _isGlobal)
 {
-	return receiveArrayAddressCAN[index];
+	if(_isGlobal)
+		return receiveArrayCAN_Global[index];
+	else
+		return receiveArrayAddressCAN[index];
 
 }
 void clearCANFTdataIndex(int index)
 {
 	receiveArrayAddressCAN[index] = 0;
 }
-bool getCANFT_RFlag(int index)
+bool getCANFT_Flag(int *receiveArray, int index)
 {
-	if(CAN_FT_recievedFlag[index] == false) {
+	if(receiveArray[index] == false) {
 		return false;
 	} else {
-		CAN_FT_recievedFlag[index] = false;
+		receiveArray[index] = false;
 		return true;
 	}
 }
 int ReceiveDataCAN(void) {
+
 	if(ReceivedData) {
 		ReceivedData = 0;
 
@@ -355,15 +377,13 @@ int ReceiveDataCAN(void) {
 			{
 				int address = Send_buffer_get(&ReceiveBuffer);
 				receiveArrayAddressCAN[address] = Send_buffer_get(&ReceiveBuffer);
-				CAN_FT_recievedFlag[address] = TRUE;
+				CAN_FT_recievedFlag[address] = true;
 				//if(address == 3) {
-//        while(1) {
-//          toggleLED(6);
-//          _delay_ms(500);
-//        }
+
 				//}
 
 			}
+
 			return 1;
 		}
 		else
@@ -404,7 +424,7 @@ void sendDataCAN( unsigned int whereToSend)
 	if(Transmit_buffer_GetCount(&TransmitBuffer)>1) {
 		TxKickNeeded = 0;
 	}
-	for(int i = 0; i<(temp>>1); i++) { //need to divid by two since reading index/value pairs, hence >>1
+	for(int i = 0; i<(temp>>1); i++) { //need to divide by two since reading index/value pairs, hence >>1
 		int index = Send_buffer_get(&ring_buffer_CAN);
 		int value = Send_buffer_get(&ring_buffer_CAN);
 		Transmit_buffer_put(&TransmitBuffer, whereToSend, index, value);

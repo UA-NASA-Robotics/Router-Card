@@ -28,7 +28,10 @@
 #endif
 
 volatile unsigned long long globalTime=0;
-
+unsigned long long millis()
+{
+	return globalTime;
+}
 void setTimerInterval(timer_t * t, unsigned long long l)
 {
 	t->timerLength=l;

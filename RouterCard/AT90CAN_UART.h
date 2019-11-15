@@ -48,7 +48,6 @@ void USART1_Flush();
 
 
 
-// int uart_putchar(char c, FILE *stream);
-// static FILE *mystdout;
+//extern static FILE *mystdout;
 
 #endif /* AT90CAN_UART_H_ */

@@ -48,7 +48,7 @@ void FT_Init (FT_t * handle,
 ///--------------------------------------------------------------------------
 /// Initializes the FastTransfer instance associated with the given handle
 /// by setting all values of the array to 0 and all modification flags
-/// to TRUE.  Also connects the instance to serial transmit and receive
+/// to true.  Also connects the instance to serial transmit and receive
 /// buffers via the three callback functions.
 ///
 /// Parameters:
@@ -69,7 +69,7 @@ int16_t FT_Read (FT_t * handle, uint8_t index);
 
 bool FT_Modified (FT_t * handle, uint8_t index);
 ///--------------------------------------------------------------------------
-/// Read the modification flag, which is TRUE if and only if the data at the
+/// Read the modification flag, which is true if and only if the data at the
 /// given index has not already been read.
 ///--------------------------------------------------------------------------
 

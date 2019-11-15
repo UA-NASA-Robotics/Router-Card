@@ -11,7 +11,6 @@
 //#include <stdio.h>
 #include "AT90CAN_UART.h"
 #include "CommsDefenition.h"
-#include "general.h"
 #include "LEDs.h"
 #include "CANFastTransfer.h"
 #include "can.h"
@@ -75,11 +74,7 @@ void initialize(void)
 #endif
 	//Init the CAN here
 	can_init();
-#ifndef DISABLE_MOTOR_SYSTEMS
-	//Init the motors
-	initMotors();
 
-#endif
 	//Start communciations handlers
 	initCANFastTransfer();
 

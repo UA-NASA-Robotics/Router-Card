@@ -260,7 +260,7 @@ unsigned int parse (Buffer_t * buf, uint16_t * arr, bool * flags, int arr_size, 
 
 		if (Buffer_empty(m_buf))
 			// exit because no more data in buffer
-			return;
+			return 0;
 
 		Parser_message();
 		int status = Parser_status();

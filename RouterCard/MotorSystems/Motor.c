@@ -6,13 +6,11 @@
  */
 
 #include "Motor.h"
-#include "../general.h"
 #include "../assert.h"
 #include "../can.h"
 #include "../CANFastTransfer.h"
 #include "../CommsDefenition.h"
 #include "../Config.h"
-#include "../general.h"
 #include <stdlib.h>
 #include <string.h>
 #include <avr/io.h>
@@ -34,10 +32,10 @@ void initMotors()
 		setTimerInterval(&resendMotorTimer[i],50);
 
 #ifndef DISABLE_LEFT_MOTOR
-	//LeftMotor = (Motor_t){LEFTMOTORID,LEFTMOTOR_STATUS,LEFTMOTOR_MOB,MAXRPM,MAXCURRENTBG65,ACCEL_CONST,TRUE,(LimitSwitch_t){0,0},LeftMotor.Motor_Buffer};
+	//LeftMotor = (Motor_t){LEFTMOTORID,LEFTMOTOR_STATUS,LEFTMOTOR_MOB,MAXRPM,MAXCURRENTBG65,ACCEL_CONST,true,(LimitSwitch_t){0,0},LeftMotor.Motor_Buffer};
 	InitMotor(&LeftMotor, LEFTMOTORID, LEFTMOTOR_STATUS, LEFTMOTOR_MOB, MAXRPM, MAXCURRENTBG65,(LimitSwitch_t) {
 		0,0
-	}, TRUE);
+	}, true);
 //  setMotorControlMode(&LeftMotor, Velocity);
 //  setMotorVel(&LeftMotor, 0);
 #endif /*DISABLE_LEFT_MOTOR*/
@@ -45,7 +43,7 @@ void initMotors()
 #ifndef DISABLE_RIGHT_MOTOR
 	InitMotor(&RightMotor, RIGHTMOTORID, RIGHTMOTOR_STATUS, RIGHTMOTOR_MOB, MAXRPM, MAXCURRENTBG65,(LimitSwitch_t) {
 		0,0
-	},TRUE);
+	},true);
 //  setMotorControlMode(&RightMotor, Velocity);
 //  setMotorVel(&RightMotor, 0);
 #endif /*DISABLE_ARM_MOTOR*/
@@ -54,7 +52,7 @@ void initMotors()
 	InitMotor(&ArmMotor, ARMMOTORID, ARMMOTOR_STATUS, ARMMOTOR_MOB, MAXRPM, MAXCURRENTARM, (LimitSwitch_t) {
 		LIM_D0H,LIM_D1H
 		,0
-	}, FALSE);
+	}, false);
 //  setMotorControlMode(&ArmMotor, Velocity);
 //  setMotorVel(&ArmMotor, 0);
 #endif /*DISABLE_LEFT_MOTOR*/
@@ -62,7 +60,7 @@ void initMotors()
 #ifndef DISABLE_BUCKET_MOTOR
 	InitMotor(&BucketMotor, BUCKETMOTORID, BUCKETMOTOR_STATUS, BUCKETMOTOR_MOB, MAXRPM, MAXCURRENTBUCKET,(LimitSwitch_t) {
 		0,0
-	},TRUE);
+	},true);
 //  setMotorControlMode(&BucketMotor, Velocity);
 //  setMotorVel(&BucketMotor, 0);
 #endif /*DISABLE_LEFT_MOTOR*/
@@ -70,7 +68,7 @@ void initMotors()
 #ifndef DISABLE_PLOW_MOTOR
 	InitMotor(&PlowMotor, PLOWMOTORID, PLOWMOTOR_STATUS, PLOWMOTOR_MOB, MAXRPM, MAXCURRENTPLOW,(LimitSwitch_t) {
 		0,0
-	},FALSE);
+	},false);
 //  setMotorControlMode(&PlowMotor, Velocity);
 //  setMotorVel(&PlowMotor, 0);
 #endif /*DISABLE_LEFT_MOTOR*/

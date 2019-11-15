@@ -9,13 +9,27 @@
 #ifndef CANFASTTRANSFER_H_
 #define CANFASTTRANSFER_H_
 #include <stdbool.h>
-
+#include "GlobalCAN_IDs.h"
 #define CANFAST_MOB 5
 #define CONTROL_MOB 6
 #define BEACON_MOB 7
 #define TRANSMITMOB 13
 #define BUFFER_SIZECAN 40
 #define BUFFER_SIZETRANSMIT 90 //should be multiple of 3
+
+#define CAN_RECIEVE_SIZE   10
+#define GBL_CAN_RECIEVE_SIZE   100
+
+
+int CAN_FT_recievedFlag[CAN_RECIEVE_SIZE];
+
+int ReceiveCAN[CAN_RECIEVE_SIZE];
+
+volatile int receiveArrayCAN_Global[GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV +1];
+
+int GBL_CAN_FT_recievedFlag[GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV +1];
+
+
 
 
 //Init function
@@ -25,10 +39,17 @@ void beginCANFast(volatile int * ptr, unsigned int maxSize, unsigned char givenA
 //RX functions
 void SetReceiveMode(int input);
 int  ReceiveDataCAN(void);
-void setCANFTdata(int index, int val);
-int getCANFTdata(int index);
+void setCANFTdata(int index, int val,bool isGlobal);
+int getCANFTdatas(int index,bool _isGlobal);
+#define getCANFTdata(c)     getCANFTdatas(c,false)
+#define getGBL_CANFTdata(c)   getCANFTdatas(c,true)
+
 void clearCANFTdataIndex(int index);
-bool getCANFT_RFlag(int index);
+bool getCANFT_Flag(int *receiveArray, int index);
+
+#define getCANFT_RFlag(c) getCANFT_Flag(CAN_FT_recievedFlag,c)
+#define getGBL_CANFTFlag(c) getCANFT_Flag(GBL_CAN_FT_recievedFlag,c)
+
 //TX functions
 void ToSendCAN( unsigned int where, unsigned int what);
 void ToSendCAN_Control(unsigned char where, unsigned int what);
@@ -39,7 +60,9 @@ void sendDataCAN_Beacon( unsigned int whereToSend);
 int GetTransmitErrorCount(void);
 
 volatile int * receiveArrayAddressCAN; // this is where the data will go when it is received
+
 unsigned char moduleAddressCAN; // the address of this module
+#define GLOBAL_CAN_ADDRESS    31 // the address of this module
 unsigned int MaxIndex;
 
 

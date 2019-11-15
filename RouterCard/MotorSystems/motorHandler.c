@@ -10,7 +10,7 @@
 #include "../LEDs.h"
 void ReceiveMotor( CAN_packet *p, unsigned char mob);
 
-void InitMotor(Motor_t* Motor, char address, char statusBit,char mob, int maxRPM, int maxCurrent, LimitSwitch_t limitSwitch, BOOL brushless)
+void InitMotor(Motor_t* Motor, char address, char statusBit,char mob, int maxRPM, int maxCurrent, LimitSwitch_t limitSwitch, bool brushless)
 {
 
 	Motor->ID = address;
@@ -37,7 +37,7 @@ void InitMotor(Motor_t* Motor, char address, char statusBit,char mob, int maxRPM
 	SDO_packet SetPoles = { Motor->ID, SET_POLES};
 	SDO_packet MotorPolarity = { Motor->ID, MOTOR_POLARITY};
 	SDO_packet SetFeedBack;
-	if(brushless == TRUE)
+	if(brushless == true)
 	{
 		SetFeedBack = (SDO_packet) {
 			Motor->ID,  SET_FEEDBACK_ENCODER
@@ -61,7 +61,7 @@ void InitMotor(Motor_t* Motor, char address, char statusBit,char mob, int maxRPM
 	//initialize circular buffer for motor
 	cb_init(&Motor->Motor_Buffer, motorBuffer[mob], Motor_Buffer_Size, CAN_PACKET_SIZE);
 	//prepare RX receiving mob for motor.
-	BOOL ret;
+	bool ret;
 	ret=prepare_rx( Motor->MOB, 0x580 + Motor->ID, RECEIVE_MASK, ReceiveMotor); //all 0s forces comparison
 	ASSERT( ret==0);
 
@@ -121,7 +121,7 @@ void InitMotor_BG75(Motor_t* Motor, char address, char statusBit,char mob, int m
 	//initialize circular buffer for left motor
 	cb_init(&Motor->Motor_Buffer,motorBuffer[mob], Motor_Buffer_Size, CAN_PACKET_SIZE);
 	//prepare RX receiving mob for motor.
-	BOOL ret;
+	bool ret;
 	ret=prepare_rx( Motor->MOB, 0x580 + Motor->ID, RECEIVE_MASK, ReceiveMotor); //all 0s forces comparison
 	ASSERT( ret==0);
 

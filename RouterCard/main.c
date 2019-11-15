@@ -2,7 +2,10 @@
  * RouterCard.c
  *
  * Created: 4/13/2016 11:28:41 PM
- * Author : reed
+ *Author: Seth Carpenter
+ *
+ *
+ * System wiki : https://github.com/UA-NASA-Robotics/ROCKEE_Router-Card/wiki
  */
 
 #include <avr/io.h>
@@ -14,9 +17,7 @@
 #include "can.h"
 #include "CommsDefenition.h"
 #include "FastTransfer.h"
-#include "general.h"
 #include "assert.h"
-#include "MotorSystems/Motor.h"
 #include "CANFastTransfer.h"
 #include "commsReceive.h"
 #include "LEDs.h"
@@ -50,7 +51,8 @@ int main(void)
 	while(1)
 	{
 
-		updateComs2();
+		//updateComs2();
+		CommunicationsHandle();
 
 
 #ifdef USE_BUTTONS_TEST

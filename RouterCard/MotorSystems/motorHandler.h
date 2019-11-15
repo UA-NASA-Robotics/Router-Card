@@ -35,7 +35,7 @@
 //}Motor_t;
 
 void InitMotor_BG75(Motor_t* Motor, char address, char statusBit,char mob, int maxRPM, int maxCurrent, LimitSwitch_t limitSwitch);
-void InitMotor(Motor_t* Motor, char address, char statusBit,char mob, int maxRPM, int maxCurrent, LimitSwitch_t limitSwitch, BOOL brushless);
+void InitMotor(Motor_t* Motor, char address, char statusBit,char mob, int maxRPM, int maxCurrent, LimitSwitch_t limitSwitch, bool brushless);
 
 void clearMotorErrorStatusReg(Motor_t* motor);
 
