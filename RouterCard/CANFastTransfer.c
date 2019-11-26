@@ -111,87 +111,87 @@ void ReceiveCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 	} //end default receive mode
 
 }
-
-#ifndef DISABLE_CAN_FORWARDING_RECEIVEISR
-void ReceiveCANFastCONTROL( CAN_packet *p, unsigned char mob) // interrupt callback
-{
-	//basic idea is to dump all data into a circular buffer
-	//when a packet with length 4 or 9 is received kick data in buffer
-	//to be sent of UART to correct address.
-	if(p->length == 8) //Check number of bytes, if 8 read in two ints
-	{
-		Send_Queue_ControlBox_put(p->id & 0b11111, p->data[1], (p->data[2]<<8) +(p->data[3]));
-		if(p->data[0] != 0) {
-			//handle error trying to transmit too large of an index
-		}
-		Send_Queue_ControlBox_put(p->id & 0b11111, p->data[5], (p->data[6]<<8) +(p->data[7]));
-		if(p->data[4] != 0) {
-			//handle error trying to transmit too large of an index
-		}
-	}
-	else if(p->length == 9) //Check number of bytes, if 9 read in two ints
-	{
-		Send_Queue_ControlBox_put(p->id & 0b11111, p->data[1], (p->data[2]<<8) +(p->data[3]));
-		if(p->data[0] != 0) {
-			//handle error trying to transmit too large of an index
-		}
-		Send_Queue_ControlBox_put(p->id & 0b11111, p->data[5], (p->data[6]<<8) +(p->data[7]));
-		if(p->data[4] != 0) {
-			//handle error trying to transmit too large of an index
-		}
-		//add who sent data to end of packet
-		Send_Queue_ControlBox_put(p->id & 0b11111, LastBoardReceived, p->id & 0b11111);
-		Send_Queue_ControlBox_send(p->id & 0b11111);
-	}
-	else //else read in one int
-	{
-		Send_Queue_ControlBox_put(p->id & 0b11111, p->data[1], (p->data[2]<<8) +(p->data[3]));
-		if(p->data[0] != 0) {
-			//handle error trying to transmit too large of an index
-		}
-		Send_Queue_ControlBox_put(p->id & 0b11111, LastBoardReceived, p->id & 0b11111);
-		Send_Queue_ControlBox_send(p->id & 0b11111);
-	}
-}
-void ReceiveCANFastBEACON( CAN_packet *p, unsigned char mob) // interrupt callback
-{
-	//basic idea is to dump all data into a circular buffer
-	//when a packet with length 4 or 9 is received kick data in buffer
-	//to be sent of UART to correct address.
-	if(p->length == 8) //Check number of bytes, if 8 read in two ints
-	{
-		if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
-			Send_buffer_put(&ReceiveBufferBeacon, (p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
-			ReceivedData = 1;
-		}
-		if((p->data[4]<<8) +(p->data[5]) < MaxIndex) {
-			Send_buffer_put(&ReceiveBufferBeacon, (p->data[4]<<8) +(p->data[5]), (p->data[6]<<8) +(p->data[7]));
-			ReceivedData = 1;
-		}
-		Send_buffer_put(&ReceiveBufferBeacon, LastBoardReceived, (p->id & 0b11111));
-	}
-	else if(p->length == 9) //Check number of bytes, if 9 read in two ints
-	{
-		if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
-			Send_buffer_put(&ReceiveBufferBeacon, (p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
-			ReceivedData = 1;
-		}
-		if((p->data[4]<<8) +(p->data[5]) < MaxIndex) {
-			Send_buffer_put(&ReceiveBufferBeacon, (p->data[4]<<8) +(p->data[5]), (p->data[6]<<8) +(p->data[7]));
-			ReceivedData = 1;
-		}
-		Send_buffer_put(&ReceiveBufferBeacon, LastBoardReceived, (p->id & 0b11111));
-	}
-	else //else read in one int
-	{
-		if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
-			Send_buffer_put(&ReceiveBufferBeacon, (p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
-			ReceivedData = 1;
-		}
-		Send_buffer_put(&ReceiveBufferBeacon, LastBoardReceived, (p->id & 0b11111));
-	}
-}
-#endif
+//
+// #ifndef DISABLE_CAN_FORWARDING_RECEIVEISR
+// void ReceiveCANFastCONTROL( CAN_packet *p, unsigned char mob) // interrupt callback
+// {
+//  //basic idea is to dump all data into a circular buffer
+//  //when a packet with length 4 or 9 is received kick data in buffer
+//  //to be sent of UART to correct address.
+//  if(p->length == 8) //Check number of bytes, if 8 read in two ints
+//  {
+//    Send_Queue_ControlBox_put(p->id & 0b11111, p->data[1], (p->data[2]<<8) +(p->data[3]));
+//    if(p->data[0] != 0) {
+//      //handle error trying to transmit too large of an index
+//    }
+//    Send_Queue_ControlBox_put(p->id & 0b11111, p->data[5], (p->data[6]<<8) +(p->data[7]));
+//    if(p->data[4] != 0) {
+//      //handle error trying to transmit too large of an index
+//    }
+//  }
+//  else if(p->length == 9) //Check number of bytes, if 9 read in two ints
+//  {
+//    Send_Queue_ControlBox_put(p->id & 0b11111, p->data[1], (p->data[2]<<8) +(p->data[3]));
+//    if(p->data[0] != 0) {
+//      //handle error trying to transmit too large of an index
+//    }
+//    Send_Queue_ControlBox_put(p->id & 0b11111, p->data[5], (p->data[6]<<8) +(p->data[7]));
+//    if(p->data[4] != 0) {
+//      //handle error trying to transmit too large of an index
+//    }
+//    //add who sent data to end of packet
+//    Send_Queue_ControlBox_put(p->id & 0b11111, LastBoardReceived, p->id & 0b11111);
+//    Send_Queue_ControlBox_send(p->id & 0b11111);
+//  }
+//  else //else read in one int
+//  {
+//    Send_Queue_ControlBox_put(p->id & 0b11111, p->data[1], (p->data[2]<<8) +(p->data[3]));
+//    if(p->data[0] != 0) {
+//      //handle error trying to transmit too large of an index
+//    }
+//    Send_Queue_ControlBox_put(p->id & 0b11111, LastBoardReceived, p->id & 0b11111);
+//    Send_Queue_ControlBox_send(p->id & 0b11111);
+//  }
+// }
+// void ReceiveCANFastBEACON( CAN_packet *p, unsigned char mob) // interrupt callback
+// {
+//  //basic idea is to dump all data into a circular buffer
+//  //when a packet with length 4 or 9 is received kick data in buffer
+//  //to be sent of UART to correct address.
+//  if(p->length == 8) //Check number of bytes, if 8 read in two ints
+//  {
+//    if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
+//      Send_buffer_put(&ReceiveBufferBeacon, (p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
+//      ReceivedData = 1;
+//    }
+//    if((p->data[4]<<8) +(p->data[5]) < MaxIndex) {
+//      Send_buffer_put(&ReceiveBufferBeacon, (p->data[4]<<8) +(p->data[5]), (p->data[6]<<8) +(p->data[7]));
+//      ReceivedData = 1;
+//    }
+//    Send_buffer_put(&ReceiveBufferBeacon, LastBoardReceived, (p->id & 0b11111));
+//  }
+//  else if(p->length == 9) //Check number of bytes, if 9 read in two ints
+//  {
+//    if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
+//      Send_buffer_put(&ReceiveBufferBeacon, (p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
+//      ReceivedData = 1;
+//    }
+//    if((p->data[4]<<8) +(p->data[5]) < MaxIndex) {
+//      Send_buffer_put(&ReceiveBufferBeacon, (p->data[4]<<8) +(p->data[5]), (p->data[6]<<8) +(p->data[7]));
+//      ReceivedData = 1;
+//    }
+//    Send_buffer_put(&ReceiveBufferBeacon, LastBoardReceived, (p->id & 0b11111));
+//  }
+//  else //else read in one int
+//  {
+//    if((p->data[0]<<8) +(p->data[1]) < MaxIndex) {
+//      Send_buffer_put(&ReceiveBufferBeacon, (p->data[0]<<8) +(p->data[1]), (p->data[2]<<8) +(p->data[3]));
+//      ReceivedData = 1;
+//    }
+//    Send_buffer_put(&ReceiveBufferBeacon, LastBoardReceived, (p->id & 0b11111));
+//  }
+// }
+// #endif
 
 void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 {
@@ -308,13 +308,6 @@ void beginCANFast(volatile int * ptr, unsigned int maxSize, unsigned char givenA
 	ret+=prepare_rx(CONTROL_MOB,GLOBAL_CAN_ADDRESS<<6, 0b11111100000,ReceiveCANFast); // Initialization the Receiver for the Global Bus
 	ASSERT( ret==0);
 
-#ifndef DISABLE_CAN_FORWARDING_RECEIVE
-	ret=prepare_rx( CONTROL_MOB, ControlBoxAddress<<6, 0b11111100000, ReceiveCANFastCONTROL); //all 1s forces comparison
-	ASSERT( ret==0);
-	ret=prepare_rx( BEACON_MOB, BeaconAddress<<6, 0b11111100000, ReceiveCANFastBEACON); //all 1s forces comparison
-	ASSERT( ret==0);
-#endif
-
 	prepare_tx(TRANSMITMOB, 0b11111111111, 0b11111111111, TransmitCANFast);
 	List_Init(&head);
 	Send_buffer_flush(&ring_buffer_CAN,0);
@@ -335,6 +328,7 @@ void setCANFTdata(int index, int val,bool isGlobal)
 	{
 		receiveArrayCAN_Global[index ] = val;
 		GBL_CAN_FT_recievedFlag[index]=true;
+		//printf("rx: %d\n",index);
 
 	} else {
 

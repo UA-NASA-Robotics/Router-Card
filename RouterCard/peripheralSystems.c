@@ -20,8 +20,9 @@ bool isSystemReady(uint16_t _mask)
 	_mask &= (0xFFFF >> 16 - GLOBAL_DEVICES);
 	/* Getting the status of all the devices that have sent in a status */
 	uint16_t status = getSystemStatus() & (0xFFFF >> 16 - GLOBAL_DEVICES);
+	//printf("status: %d\nmask: %d\nResult: %d\n",status,_mask,(status & _mask) == _mask);
 	/* Return true if the required statuses are valid */
-	return ((status & _mask) == status);
+	return ((status & _mask) == _mask);
 }
 uint16_t getSystemStatus()
 {
@@ -34,6 +35,7 @@ uint16_t getSystemStatus()
 			/* if there is any device that has a '0' in the first
 			   bit of  their status word isReady will become false*/
 			isReady |= (getGBL_CANFTdata(getGBL_DEVICE_STATUS(i)) & 0x01) << (i);
+
 		}
 	}
 	return isReady;

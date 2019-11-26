@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include "Definitions.h"
 
+
+
 #define GLOBAL_DEVICES 10
 #define GLOBAL_DATA_IDX_PER_DEV 7
 
@@ -28,6 +30,11 @@ typedef enum {
 } GlobalDeviceData_t;
 #define getGBL_DEVICE_STATUS(c) c*GLOBAL_DATA_IDX_PER_DEV + DEVICE_STATUS
 #define getGBL_MACRO_INDEX(c) c*GLOBAL_DATA_IDX_PER_DEV + DEVICE_MACRO
+
+volatile int receiveArrayCAN_Global[GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV +1];
+
+bool GBL_CAN_FT_recievedFlag[GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV +1];
+
 // typedef struct
 // {
 //  // address: This will be used as the offset value for indexing the below arrays

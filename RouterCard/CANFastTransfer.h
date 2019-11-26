@@ -25,9 +25,7 @@ int CAN_FT_recievedFlag[CAN_RECIEVE_SIZE];
 
 int ReceiveCAN[CAN_RECIEVE_SIZE];
 
-volatile int receiveArrayCAN_Global[GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV +1];
 
-int GBL_CAN_FT_recievedFlag[GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV +1];
 
 
 
