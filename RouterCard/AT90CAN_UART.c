@@ -346,7 +346,7 @@ ISR(USART1_RX_vect) {
 
 
 	received1 = UDR1; // might be able to eliminate this line.
-
+	toggleLED(LED6);
 	cb_push_back(&UART1_RX_Buffer, &received1);
 
 }

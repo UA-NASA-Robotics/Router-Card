@@ -16,3 +16,7 @@ doc/html/**/*
 asset.cache
 *.DS_Store
 RouterCard/CANFastTransfer.h.rej
+
+*.lss
+
+*.srec

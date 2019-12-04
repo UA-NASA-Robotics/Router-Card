@@ -10,6 +10,7 @@
 #define TIMER_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct {
 	unsigned long long timerLength;
@@ -17,7 +18,7 @@ typedef struct {
 } timer_t;
 
 void initTimer0(void);
-unsigned int getTimeElepsed(timer_t * t);
+unsigned long long getTimeElapsed(timer_t * t);
 bool timerDone(timer_t * t);
 bool timerDone_NoReset(timer_t * t);
 void setTimerInterval(timer_t * t, unsigned long long l);

@@ -249,18 +249,21 @@ void Parser_write_message_data ()
 /*
  * API Function
  */
-
+int byteWriteCount = 0;
 unsigned int parse (Buffer_t * buf, uint16_t * arr, bool * flags, int arr_size, uint8_t address)
 {
-	int byteWriteCount = 0;
+	byteWriteCount = 0;
 	while (1)
 	{
 		// reset the parsing module
 		Parser_init(buf, arr, flags, arr_size, address);
 
-		if (Buffer_empty(m_buf))
+		if (Buffer_empty(m_buf)) {
+
 			// exit because no more data in buffer
-			return 0;
+
+			return byteWriteCount;
+		}
 
 		Parser_message();
 		int status = Parser_status();
@@ -268,6 +271,8 @@ unsigned int parse (Buffer_t * buf, uint16_t * arr, bool * flags, int arr_size, 
 		switch (status)
 		{
 		case PARSE_STATUS_GOOD:
+
+
 			Parser_write_message_data();
 			toggleLED(8);
 			byteWriteCount++;

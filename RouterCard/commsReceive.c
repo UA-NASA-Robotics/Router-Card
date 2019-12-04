@@ -87,16 +87,15 @@ unsigned int macroSubmitCount = 0;
 
 void CommunicationsHandle() {
 	// if any bytes of date have been received from the control box
-	if(timerDone(&safetyTimer))//FT_Receive(&Control_ft_handle))
+	if(FT_Receive(&Control_ft_handle))
 	{
-		// Restart the timer since we received data
-		resetTimer(&safetyTimer);
+		printf("Received Data..\n");
 		// Parse out the FT data into local variables
 		parseComms();
 		// Check to see if a controlled stop was requested
 		checkE_Stop();
 		// This mask will control which devices are expected to have a good system status before continuing
-		uint16_t mask = (1 << MOTOR_ADDRESS);// | (1 << MASTER_ADDRESS) | (1 << GYRO_ADDRESS) ;
+		uint16_t mask = 0;//(1 << MOTOR_ADDRESS);// | (1 << MASTER_ADDRESS) | (1 << GYRO_ADDRESS) ;
 		// Verify system statuses
 		if(isSystemReady(mask))
 		{
@@ -136,17 +135,21 @@ void CommunicationsHandle() {
 			FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
 		}
 		//Reply to the Control Box with information (Macro status(ONLY if active), UP time)
-		FT_ToSend(&Control_ft_handle, UPTIME_COUNTER_INDEX, getTimeElepsed(&upTimeCounter)/1000);
+		FT_ToSend(&Control_ft_handle, UPTIME_COUNTER_INDEX, getTimeElapsed(&upTimeCounter)/1000);
+		printf("UpTime: %d",getTimeElapsed(&upTimeCounter)/1000);
 		// Reply to the Control Box with information (Macro status(ONLY if active), UP time)
 		FT_Send(&Control_ft_handle, CONTROL_BOX_ADDRESS);
+		// Restart the timer since we received data
+		resetTimer(&safetyTimer);
 
 	}
 	// If there hasn't been a received message from the control box in some amount of time we assume system is
 	// not connected
 	if(timerDone(&safetyTimer))
 	{
+		printf("Not Connected Error\r");
 		resetTimer(&upTimeCounter);
-		//System_STOP();
+		System_STOP();
 	}
 
 
@@ -165,19 +168,19 @@ void System_STOP()
 {
 	MacroStatus = Idle;
 	macroCommand = STOP_MACRO;
-	FT_ToSend(&Control_ft_handle, 1, STOP_MACRO);
+	FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
 	// send the packet
 	FT_Send(&Control_ft_handle, CONTROL_BOX_ADDRESS);
 
 	getCANFT_RFlag(CAN_COMMAND_INDEX);    /* Clear the Flag */
 	/* Tell the Master to STOP */
-	ToSendCAN(0, ROUTER_ADDRESS);
-	ToSendCAN(CAN_COMMAND_INDEX, STOP_MACRO);
-	ToSendCAN(CAN_COMMAND_DATA_INDEX, STOP_MACRO);    /* We don't need to send this Index but why not */
-	sendDataCAN(MASTER_ADDRESS);
-	/* Clearing an index CAN_FT receive Array So that there isn't an accident
-	   and we jump back into a macro (not Likely but covering my ass) */
-	setCANFTdata(CAN_COMMAND_INDEX,0,false);
+//  ToSendCAN(0, ROUTER_ADDRESS);
+//  ToSendCAN(CAN_COMMAND_INDEX, STOP_MACRO);
+//  ToSendCAN(CAN_COMMAND_DATA_INDEX, STOP_MACRO);    /* We don't need to send this Index but why not */
+//  sendDataCAN(MASTER_ADDRESS);
+//  /* Clearing an index CAN_FT receive Array So that there isn't an accident
+//     and we jump back into a macro (not Likely but covering my ass) */
+//  setCANFTdata(CAN_COMMAND_INDEX,0,false);
 
 }
 

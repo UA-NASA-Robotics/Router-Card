@@ -55,6 +55,7 @@ unsigned int FT_Receive (FT_t * handle)
 	//printUART1 ();
 	//PORTA ^= (1 << 5);
 	// transfer bytes from serial buffer into local buffer
+
 	while (!isUART1_ReceiveEmpty() && !Buffer_full(&handle->receive_buf)) {
 		val = USART1_get_C();
 		handle->receive_buf.data[(unsigned int)(handle->receive_buf.tail)] = (unsigned char)val;
@@ -65,7 +66,9 @@ unsigned int FT_Receive (FT_t * handle)
 			handle->receive_buf.size = handle->receive_buf.size + 1;
 	}
 	// parse/extract messages from local buffer and update local array
-	return parse(&handle->receive_buf, handle->array, handle->flags, ARRAY_SZ, handle->address);
+	int val = parse(&handle->receive_buf, handle->array, handle->flags, ARRAY_SZ, handle->address);
+
+	return val;
 }
 
 

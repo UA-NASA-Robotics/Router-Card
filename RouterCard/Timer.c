@@ -9,7 +9,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "LEDs.h"
-
 //#define PRESCALER8    (1<<CS01)       //TOO FAST
 //#define PRESCALER64   (1<<CS01)|(1<<CS00)   //TIMER INTERVAL ISR 1ms
 //#define PRESCALER256  (1<<CS02)       //TIMER INTERVAL ISR 4ms
@@ -42,7 +41,7 @@ void resetTimer(timer_t * t)
 	unsigned long long timenow=globalTime;
 	t->prevTime=timenow;
 }
-unsigned int getTimeElepsed(timer_t * t)
+unsigned long long getTimeElapsed(timer_t * t)
 {
 	return globalTime - t->prevTime;
 }
