@@ -25,8 +25,8 @@
 /// regularly.
 bool isSystemReady(uint16_t _mask);
 
-/* parses out the macro data that has been recieved on the can bus */
-void updateMacroCommand();
+/* parses out the macro data that has been received on the can bus */
+uint16_t updateMacroCommand();
 /* returns the current macro of the system */
 uint16_t getCurrentMacro();
 

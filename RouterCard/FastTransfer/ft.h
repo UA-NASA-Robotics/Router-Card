@@ -90,6 +90,7 @@ void FT_Send (FT_t * handle, uint8_t address);
 /// Transmits the handle's packet to the given address.
 ///--------------------------------------------------------------------------
 
+void clearFT_flag(FT_t * handle, uint8_t index);
 #ifdef __cplusplus
 };
 #endif

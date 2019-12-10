@@ -89,58 +89,76 @@ void CommunicationsHandle() {
 	// if any bytes of date have been received from the control box
 	if(FT_Receive(&Control_ft_handle))
 	{
-		printf("Received Data..\n");
+
 		// Parse out the FT data into local variables
 		parseComms();
 		// Check to see if a controlled stop was requested
-		checkE_Stop();
-		// This mask will control which devices are expected to have a good system status before continuing
-		uint16_t mask = 0;//(1 << MOTOR_ADDRESS);// | (1 << MASTER_ADDRESS) | (1 << GYRO_ADDRESS) ;
-		// Verify system statuses
-		if(isSystemReady(mask))
-		{
-			printf("System (Good)\n");
-			_delay_ms(2);
-			// Is the current macro running not matching with the pending macro
-			if(pendingMacroIndex != STOP && pendingMacroIndex & getCurrentMacro() == 0) {
-				// Only need to send the macro request once in a while
-				if(timerDone(&macroResubmitTimer))
-				{
-					// Keep track of how many times we have submitted so we can back out if we have tried too many times
-					if(macroSubmitCount++ > 5)
+
+		if(!checkE_Stop()) {
+			// This mask will control which devices are expected to have a good system status before continuing
+			uint16_t mask = 0;//(1 << MOTOR_ADDRESS);// | (1 << MASTER_ADDRESS) | (1 << GYRO_ADDRESS) ;
+			// Verify system statuses
+			if(isSystemReady(mask))
+			{
+				macroCommand = getCurrentMacro();
+				// Is the current macro running not matching with the pending macro
+				if((pendingMacroIndex & macroCommand) != pendingMacroIndex) {
+
+
+					// Only need to send the macro request once in a while
+					if(timerDone(&macroResubmitTimer))
 					{
-						pendingMacroIndex = STOP;
+						/* Keep track of how many times we have submitted so
+						we can back out if we have tried too many times */
+						if(macroSubmitCount++ > 5)
+						{
+							pendingMacroIndex = STOP;
+							FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, -1);
+
+						}
+						/* transmit macro on CAN bus */
+						sendMacroCommand();
+						printf("transmitting Macro\n");
 					}
 				}
+				else if(FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX))
+				{
+					printf("macro Received: %d\n",FT_Read(&Control_ft_handle,MACRO_COMMAND_INDEX));
+					clearFT_flag(&Control_ft_handle,MACRO_COMMAND_INDEX);
+					// Update Macro System (pending values only given here)
+					if((macroCommand | (FT_Read(&Control_ft_handle,MACRO_COMMAND_INDEX))) != macroCommand)
+						pendingMacroIndex = FT_Read(&Control_ft_handle,MACRO_COMMAND_INDEX);
+
+				}
+				else if(!FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && macroCommand == STOP_MACRO)
+				{
+					printf("send Manual\n");
+					// if there hasn't been a macro request then we can send a macro response to the control box of the STOP_MACRO
+					FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
+					// Send the manual commands for the corresponding controller to handle them
+					macroSubmitCount = 0;
+					//TODO: Timer interval needed for sending information
+				}
 			}
-			else if(FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && macroCommand == STOP_MACRO)
+			else
 			{
-				// Update Macro System (pending values only given here)
-				pendingMacroIndex = FT_Read(&Control_ft_handle,MACRO_COMMAND_INDEX);
-			}
-			else if(!FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && macroCommand == STOP_MACRO)
-			{
-				// if there hasn't been a macro request then we can send a macro response to the control box of the STOP_MACRO
+				printf("System (Error)\n");
+				// Clearing status flag to Reject Macros and send system status
+				FT_Modified (&Control_ft_handle, MACRO_COMMAND_INDEX);
 				FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
-				// Send the manual commands for the corresponding controller to handle them
-				sendManualCommand();
-				//TODO: Timer interval needed for sending information
 			}
 		}
-		else
-		{
-			printf("System (Error)\n");
-			// Clearing status flag to Reject Macros and send system status
-			FT_Modified (&Control_ft_handle, MACRO_COMMAND_INDEX);
-			FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
-		}
+		macroCommand = getCurrentMacro();
 		//Reply to the Control Box with information (Macro status(ONLY if active), UP time)
 		FT_ToSend(&Control_ft_handle, UPTIME_COUNTER_INDEX, getTimeElapsed(&upTimeCounter)/1000);
-		printf("UpTime: %d",getTimeElapsed(&upTimeCounter)/1000);
+		FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, macroCommand);
+
 		// Reply to the Control Box with information (Macro status(ONLY if active), UP time)
 		FT_Send(&Control_ft_handle, CONTROL_BOX_ADDRESS);
 		// Restart the timer since we received data
 		resetTimer(&safetyTimer);
+
+
 
 	}
 	// If there hasn't been a received message from the control box in some amount of time we assume system is
@@ -157,8 +175,11 @@ void CommunicationsHandle() {
 
 
 bool checkE_Stop() {
-	if(FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && FT_Read(&Control_ft_handle, MACRO_COMMAND) == STOP_MACRO) {
+	if(FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX) == STOP_MACRO) {
+		clearFT_flag(&Control_ft_handle,MACRO_COMMAND_INDEX);
 		System_STOP();
+		pendingMacroIndex =  STOP_MACRO;
+		//printf("E_STOP!!\n");
 		return true;
 	}
 	return false;
@@ -166,13 +187,20 @@ bool checkE_Stop() {
 
 void System_STOP()
 {
-	MacroStatus = Idle;
-	macroCommand = STOP_MACRO;
-	FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
-	// send the packet
-	FT_Send(&Control_ft_handle, CONTROL_BOX_ADDRESS);
+	// Loading the CAN FastTransfer buffer with macro data
+	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_ADDRESS), STOP_MACRO);
+	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_ADDRESS)+1,0);
+	// Sending.... the data on the Global CAN bus to the for processing
+	sendDataCAN(GLOBAL_ADDRESS);
 
-	getCANFT_RFlag(CAN_COMMAND_INDEX);    /* Clear the Flag */
+	//MacroStatus = Idle;
+	//macroCommand = STOP_MACRO;
+
+	//FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
+	// send the packet
+	//FT_Send(&Control_ft_handle, CONTROL_BOX_ADDRESS);
+
+	//getCANFT_RFlag(CAN_COMMAND_INDEX);    /* Clear the Flag */
 	/* Tell the Master to STOP */
 //  ToSendCAN(0, ROUTER_ADDRESS);
 //  ToSendCAN(CAN_COMMAND_INDEX, STOP_MACRO);
@@ -198,10 +226,10 @@ void updateCANFTcoms()
 void sendMacroCommand()
 {
 	// Loading the CAN FastTransfer buffer with macro data
-	ToSendCAN(MACRO_COMMAND_INDEX, FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX));
-	ToSendCAN(CAN_COMMAND_DATA_INDEX,FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
-	// Sending.... the data on the CAN bus to the Master Controller for processing
-	sendDataCAN(MASTER_ADDRESS);
+	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_ADDRESS), FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX));
+	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_ADDRESS)+1,FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
+	// Sending.... the data on the Global CAN bus to the for processing
+	sendDataCAN(GLOBAL_ADDRESS);
 }
 void sendManualCommand()
 {

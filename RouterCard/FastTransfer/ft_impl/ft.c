@@ -38,15 +38,19 @@ void FT_Init (FT_t * handle,
 
 int16_t FT_Read (FT_t * handle, uint8_t index)
 {
-	handle->flags[index] = false;
+	//handle->flags[index] = false;
 	return (int16_t)(handle->array[index]);
 }
 
 bool FT_Modified (FT_t * handle, uint8_t index)
 {
 	bool temp = handle->flags[index];
-	handle->flags[index] = false;
+	//handle->flags[index] = false;
 	return temp;
+}
+void clearFT_flag(FT_t * handle, uint8_t index)
+{
+	handle->flags[index] = false;
 }
 unsigned char val;
 unsigned char tmpVal;

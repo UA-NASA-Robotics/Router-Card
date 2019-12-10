@@ -24,10 +24,12 @@ bool isSystemReady(uint16_t _mask)
 	/* Return true if the required statuses are valid */
 	return ((status & _mask) == _mask);
 }
+
 uint16_t getSystemStatus()
 {
 	int i;
 	uint16_t isReady = 0x00;
+	/* Looping through all the devices on the CAN bus */
 	for(i = 1; i<= GLOBAL_DEVICES+1; i++)
 	{
 		if(getGBL_CANFTFlag(getGBL_DEVICE_STATUS(i)))
@@ -40,8 +42,9 @@ uint16_t getSystemStatus()
 	}
 	return isReady;
 }
-
-void updateMacroCommand()
+// Looks at all the devise on the Global bus and grabs what Macro they are running
+// Returns a 16 bit value with '1's in the position that represents the macro number
+uint16_t updateMacroCommand()
 {
 	int rx_macro = 0x0000;
 	int x;
@@ -50,10 +53,8 @@ void updateMacroCommand()
 	for(i = 1; i<= GLOBAL_DEVICES+1; i++)
 	{
 		if(getGBL_CANFTdata(getGBL_MACRO_INDEX(i))) {
-
 			rx_macro |= getGBL_CANFTdata(getGBL_MACRO_INDEX(i));
 		}
-
 	}
 	if(rx_macro != previousMacro)
 	{
@@ -61,7 +62,7 @@ void updateMacroCommand()
 		currentMacro = rx_macro;
 
 	}
-
+	return rx_macro;
 }
 uint16_t getCurrentMacro()
 {
