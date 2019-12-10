@@ -101,24 +101,30 @@ void CommunicationsHandle() {
 			if(isSystemReady(mask))
 			{
 				macroCommand = getCurrentMacro();
+
 				// Is the current macro running not matching with the pending macro
-				if((pendingMacroIndex & macroCommand) != pendingMacroIndex) {
+				if(pendingMacroIndex != STOP_MACRO) {
+					if((pendingMacroIndex & macroCommand) != pendingMacroIndex) {
 
-
-					// Only need to send the macro request once in a while
-					if(timerDone(&macroResubmitTimer))
-					{
-						/* Keep track of how many times we have submitted so
-						we can back out if we have tried too many times */
-						if(macroSubmitCount++ > 5)
+						// Only need to send the macro request once in a while
+						if(timerDone(&macroResubmitTimer))
 						{
-							pendingMacroIndex = STOP;
-							FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, -1);
+							/* Keep track of how many times we have submitted so
+							we can back out if we have tried too many times */
+							if(macroSubmitCount++ > 5)
+							{
+								pendingMacroIndex = STOP;
+								// TODO: DONT USE THIS!! this fakes the control box in thinking there was a macro before it clears all the macros
+								FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, -1);
 
+							}
+							/* transmit macro on CAN bus */
+							sendMacroCommand();
+							printf("transmitting Macro\n");
 						}
-						/* transmit macro on CAN bus */
-						sendMacroCommand();
-						printf("transmitting Macro\n");
+					} else
+					{
+						pendingMacroIndex = 0;
 					}
 				}
 				else if(FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX))
@@ -144,7 +150,7 @@ void CommunicationsHandle() {
 			{
 				printf("System (Error)\n");
 				// Clearing status flag to Reject Macros and send system status
-				FT_Modified (&Control_ft_handle, MACRO_COMMAND_INDEX);
+				clearFT_flag (&Control_ft_handle, MACRO_COMMAND_INDEX);
 				FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
 			}
 		}
@@ -152,7 +158,8 @@ void CommunicationsHandle() {
 		//Reply to the Control Box with information (Macro status(ONLY if active), UP time)
 		FT_ToSend(&Control_ft_handle, UPTIME_COUNTER_INDEX, getTimeElapsed(&upTimeCounter)/1000);
 		FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, macroCommand);
-
+		printf("Macro: %d\n",macroCommand);
+		printf("pending: %d\n",pendingMacroIndex);
 		// Reply to the Control Box with information (Macro status(ONLY if active), UP time)
 		FT_Send(&Control_ft_handle, CONTROL_BOX_ADDRESS);
 		// Restart the timer since we received data
