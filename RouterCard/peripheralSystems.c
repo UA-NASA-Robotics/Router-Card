@@ -67,5 +67,5 @@ uint16_t updateMacroCommand()
 uint16_t getCurrentMacro()
 {
 	updateMacroCommand();
-	return currentMacro;
+	return updateMacroCommand();;
 }

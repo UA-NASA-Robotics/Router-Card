@@ -90,8 +90,7 @@ void CommunicationsHandle() {
 	if(FT_Receive(&Control_ft_handle))
 	{
 
-		// Parse out the FT data into local variables
-		parseComms();
+
 		// Check to see if a controlled stop was requested
 
 		if(!checkE_Stop()) {
@@ -114,8 +113,8 @@ void CommunicationsHandle() {
 							if(macroSubmitCount++ > 5)
 							{
 								pendingMacroIndex = STOP;
-								// TODO: DONT USE THIS!! this fakes the control box in thinking there was a macro before it clears all the macros
-								FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, -1);
+								// this fakes the control box in thinking there was a macro before it clears all the macros
+								FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, pendingMacroIndex);
 
 							}
 							/* transmit macro on CAN bus */
@@ -138,12 +137,13 @@ void CommunicationsHandle() {
 				}
 				else if(!FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX) && macroCommand == STOP_MACRO)
 				{
-					printf("send Manual\n");
-					// if there hasn't been a macro request then we can send a macro response to the control box of the STOP_MACRO
-					FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
+
+//          if there hasn't been a macro request then we can send a macro response to the control box of the STOP_MACRO
+//                    FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
 					// Send the manual commands for the corresponding controller to handle them
 					macroSubmitCount = 0;
 					//TODO: Timer interval needed for sending information
+					sendManualCommand();
 				}
 			}
 			else
@@ -152,7 +152,9 @@ void CommunicationsHandle() {
 				// Clearing status flag to Reject Macros and send system status
 				clearFT_flag (&Control_ft_handle, MACRO_COMMAND_INDEX);
 				FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
+
 			}
+			SetNeoPixRGB(LEDSTRIP_CONNECTED);
 		}
 		macroCommand = getCurrentMacro();
 		//Reply to the Control Box with information (Macro status(ONLY if active), UP time)
@@ -175,6 +177,7 @@ void CommunicationsHandle() {
 		printf("Not Connected Error\r");
 		resetTimer(&upTimeCounter);
 		System_STOP();
+		flashLedColors(LEDSTRIP_CONNECT_PENDING_1,LEDSTRIP_CONNECT_PENDING_2);
 	}
 
 
@@ -200,22 +203,12 @@ void System_STOP()
 	// Sending.... the data on the Global CAN bus to the for processing
 	sendDataCAN(GLOBAL_ADDRESS);
 
-	//MacroStatus = Idle;
-	//macroCommand = STOP_MACRO;
 
-	//FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
-	// send the packet
-	//FT_Send(&Control_ft_handle, CONTROL_BOX_ADDRESS);
-
-	//getCANFT_RFlag(CAN_COMMAND_INDEX);    /* Clear the Flag */
-	/* Tell the Master to STOP */
-//  ToSendCAN(0, ROUTER_ADDRESS);
-//  ToSendCAN(CAN_COMMAND_INDEX, STOP_MACRO);
-//  ToSendCAN(CAN_COMMAND_DATA_INDEX, STOP_MACRO);    /* We don't need to send this Index but why not */
-//  sendDataCAN(MASTER_ADDRESS);
-//  /* Clearing an index CAN_FT receive Array So that there isn't an accident
-//     and we jump back into a macro (not Likely but covering my ass) */
-//  setCANFTdata(CAN_COMMAND_INDEX,0,false);
+	ToSendCAN(DRIVE_MOTOR_SPEED,0);
+	ToSendCAN(ACTUATORSPEED,0);
+	ToSendCAN(ARMSPEED,0);
+	ToSendCAN(PLOWSPEED,0);
+	sendDataCAN(MOTOR_ADDRESS);
 
 }
 
@@ -240,12 +233,14 @@ void sendMacroCommand()
 }
 void sendManualCommand()
 {
-	ToSendCAN(LEFTMOTORSPEED,leftMotorCommand);
-	ToSendCAN(RIGHTMOTORSPEED,rightMotorCommand);
-	ToSendCAN(ACTUATORSPEED,actuatorSpeed);
-	ToSendCAN(ARMSPEED,armMotorCommand);
-	ToSendCAN(PLOWSPEED,plowMotorCommand);
+	ToSendCAN(DRIVE_MOTOR_SPEED,FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
+	//ToSendCAN(RIGHTMOTORSPEED,rightMotorCommand);
+	ToSendCAN(ACTUATORSPEED,FT_Read(&Control_ft_handle, ACTUATORSPEED));
+	ToSendCAN(ARMSPEED,FT_Read(&Control_ft_handle, ARMSPEED));
+	//printf("Bucket: %d\n",FT_Read(&Control_ft_handle, ACTUATORSPEED));
+	ToSendCAN(PLOWSPEED,FT_Read(&Control_ft_handle, PLOWSPEED));
 	sendDataCAN(MOTOR_ADDRESS);
+	//printf("DriveSpeed: %d\n",(signed char)FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
 
 }
 
@@ -260,9 +255,7 @@ void clearMotorCommandVars()
 	armMotorCommand     =0;
 	plowMotorCommand    =0;
 
-	receiveArrayAdd[LEFTMOTORSPEED] = 0;
-	receiveArrayAdd[RIGHTMOTORSPEED] = 0;
-
+	receiveArrayAdd[DRIVE_MOTOR_SPEED] = 0;
 	receiveArrayAdd[ACTUATORSPEED] = 0;
 	receiveArrayAdd[ARMSPEED]=0;
 	receiveArrayAdd[PLOWSPEED]=0;
@@ -274,13 +267,13 @@ void parseComms(void)
 {
 
 
-#ifndef REVERSE_LEFT_RIGHT
-	leftMotorCommand    =(int)FT_Read(&Control_ft_handle, LEFTMOTORSPEED);
-	rightMotorCommand   =(int)FT_Read(&Control_ft_handle, RIGHTMOTORSPEED);
-#else
-	leftMotorCommand    =(int)FT_Read(&Control_ft_handle, RIGHTMOTORSPEED);
-	rightMotorCommand   =(int)FT_Read(&Control_ft_handle, LEFTMOTORSPEED);
-#endif
+// #ifndef REVERSE_LEFT_RIGHT
+//  leftMotorCommand    =(int)FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED);
+//  rightMotorCommand   =(int)FT_Read(&Control_ft_handle, RIGHTMOTORSPEED);
+// #else
+//  leftMotorCommand    =(int)FT_Read(&Control_ft_handle, RIGHTMOTORSPEED);
+//  rightMotorCommand   =(int)FT_Read(&Control_ft_handle, LEFTMOTORSPEED);
+// #endif
 
 	actuatorSpeed  =   FT_Read(&Control_ft_handle, ACTUATORSPEED);
 	armMotorCommand     =   FT_Read(&Control_ft_handle, ARMSPEED);

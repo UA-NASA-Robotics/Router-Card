@@ -14,8 +14,7 @@
 
 //receive array definitions.
 #define LASTBOARD   0
-#define LEFTMOTORSPEED  1
-#define RIGHTMOTORSPEED 2
+#define DRIVE_MOTOR_SPEED  1
 #define ACTUATORSPEED 3
 #define ARMSPEED    4
 #define PLOWSPEED   5
