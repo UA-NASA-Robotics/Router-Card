@@ -70,6 +70,7 @@
       <itemPath>uart1_config.c</itemPath>
       <itemPath>ring_buffer.c</itemPath>
       <itemPath>uart2_config.c</itemPath>
+      <itemPath>timers.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
