@@ -22,7 +22,8 @@
 #define MACROSUBCOMMAND 9
 
 #include <stdbool.h>
-
+#include "FastTransfer/ft.h"
+FT_t  Control_ft_handle;
 
 void initCOMs(void);
 bool manualMode(void);

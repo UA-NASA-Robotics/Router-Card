@@ -43,7 +43,7 @@ int getCANFTdatas(int index,bool _isGlobal);
 #define getGBL_CANFTdata(c)   getCANFTdatas(c,true)
 
 void clearCANFTdataIndex(int index);
-bool getCANFT_Flag(int *receiveArray, int index);
+bool getCANFT_Flag(bool *receiveArray, int index);
 
 #define getCANFT_RFlag(c) getCANFT_Flag(CAN_FT_recievedFlag,c)
 #define getGBL_CANFTFlag(c) getCANFT_Flag(GBL_CAN_FT_recievedFlag,c)

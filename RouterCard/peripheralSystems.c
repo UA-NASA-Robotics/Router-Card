@@ -9,6 +9,7 @@
 #include "PeripheralSystems.h"
 #include "CANFastTransfer.h"
 #include "GlobalCAN_IDs.h"
+#include "commsReceive.h"
 #include <stdint.h>
 
 uint16_t currentMacro = 0;
@@ -17,9 +18,9 @@ uint16_t previousMacro = 0;
 bool isSystemReady(uint16_t _mask)
 {
 	/* Make sure the mask only is looking for devices that are actually on the bus */
-	_mask &= (0xFFFF >> 16 - GLOBAL_DEVICES);
+	_mask &= ((0xFFFF >> 16) - GLOBAL_DEVICES);
 	/* Getting the status of all the devices that have sent in a status */
-	uint16_t status = getSystemStatus() & (0xFFFF >> 16 - GLOBAL_DEVICES);
+	uint16_t status = getSystemStatus() & ((0xFFFF >> 16) - GLOBAL_DEVICES);
 	//printf("status: %d\nmask: %d\nResult: %d\n",status,_mask,(status & _mask) == _mask);
 	/* Return true if the required statuses are valid */
 	return ((status & _mask) == _mask);
@@ -68,4 +69,15 @@ uint16_t getCurrentMacro()
 {
 	updateMacroCommand();
 	return updateMacroCommand();;
+}
+void getSystemLocData()
+{
+	int x = getGBL_CANFTdata(getGBL_INDEX(MASTER_CONTROLLER,DATA_0));
+	int y = getGBL_CANFTdata(getGBL_INDEX(MASTER_CONTROLLER,DATA_1));
+	int h = getGBL_CANFTdata(getGBL_INDEX(MASTER_CONTROLLER,DATA_3));
+	FT_ToSend(&Control_ft_handle, 10, x);
+	FT_ToSend(&Control_ft_handle, 11, y);
+	FT_ToSend(&Control_ft_handle, 12, h);
+	FT_Send(&Control_ft_handle, CONTROLBOX);
+
 }

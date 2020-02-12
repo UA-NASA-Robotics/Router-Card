@@ -7,6 +7,7 @@
  */
 #include <avr/io.h>
 #include "Definitions.h"
+#include "GlobalCAN_IDs.h"
 #include "CANFastTransfer.h"
 #include "can.h"
 #include "assert.h"
@@ -41,7 +42,7 @@ int TransmitSetMissMatch = 0;
 
 void initCANFastTransfer(void)
 {
-	beginCANFast(ReceiveCAN, GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV/*sizeof(ReceiveCAN)*/, ROUTER_ADDRESS);
+	beginCANFast(ReceiveCAN, GLOBAL_DEVICES*GLOBAL_DATA_IDX_PER_DEV/*sizeof(ReceiveCAN)*/, ROUTER_CARD);
 
 }
 //Start Receive Functions
@@ -207,7 +208,7 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 		//if more than 2 data/index pairs left might be able to send large packet.
 		if(Transmit_buffer_GetCount(&TransmitBuffer)>6) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
-			p->id = ( address << 6) + ROUTER_ADDRESS; //not passed through messages will have wrong sender address
+			p->id = ( address << 6) + ROUTER_CARD; //not passed through messages will have wrong sender address
 			//we are good to send the first index/value pair for sure.
 			for(int i = 0; i<2; i++) {
 				unsigned int temp = Transmit_buffer_get(&TransmitBuffer);
@@ -243,7 +244,7 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 		//note: still need to check incase two different destinations.
 		else if(Transmit_buffer_GetCount(&TransmitBuffer)==6) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
-			p->id = ( address << 6) + ROUTER_ADDRESS; //not passed through messages will have wrong sender address
+			p->id = ( address << 6) + ROUTER_CARD; //not passed through messages will have wrong sender address
 			//we are good to send the first index/value pair for sure.
 			for(int i = 0; i<2; i++) {
 				unsigned int temp = Transmit_buffer_get(&TransmitBuffer);
@@ -270,7 +271,7 @@ void TransmitCANFast( CAN_packet *p, unsigned char mob) // interrupt callback
 		//if only 1 data/index pair receiver will know it is the last packet.
 		else if(Transmit_buffer_GetCount(&TransmitBuffer)==3) {
 			unsigned int address = Transmit_buffer_get(&TransmitBuffer);
-			p->id = ( address << 6) + ROUTER_ADDRESS; //not passed through messages will have wrong sender address
+			p->id = ( address << 6) + ROUTER_CARD; //not passed through messages will have wrong sender address
 			p->length = 4;
 			for(int i = 0; i<2; i++) {
 				unsigned int temp = Transmit_buffer_get(&TransmitBuffer);
@@ -349,7 +350,7 @@ void clearCANFTdataIndex(int index)
 {
 	receiveArrayAddressCAN[index] = 0;
 }
-bool getCANFT_Flag(int *receiveArray, int index)
+bool getCANFT_Flag(bool *receiveArray, int index)
 {
 	if(receiveArray[index] == false) {
 		return false;

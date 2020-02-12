@@ -111,10 +111,10 @@ void buttonsInputTest(void)
 		{
 			setLED(4,ON);
 			//Send to the sensor/navi an update of the macro state
-			ToSendCAN(0, ROUTER_ADDRESS);  //From Router Card
+			ToSendCAN(0, ROUTER_CARD);  //From Router Card
 			ToSendCAN(1, TURNING);        //Macro Command
 			ToSendCAN(2, 45);         //Macro sub-command
-			sendDataCAN(MASTER_ADDRESS);      //To sensor card
+			sendDataCAN(MASTER_CONTROLLER);      //To sensor card
 			ON_OFF=true;
 			setMacroSubCommand(45);
 			setMacroCommand(TURNING);
@@ -123,10 +123,10 @@ void buttonsInputTest(void)
 		{
 			setLED(4,OFF);
 			//Send to the sensor/navi an update of the macro state
-			ToSendCAN(0, ROUTER_ADDRESS);  //From Router Card
+			ToSendCAN(0, ROUTER_CARD);  //From Router Card
 			ToSendCAN(1, 0);        //Macro Command
 			ToSendCAN(2, 0);          //Macro sub-command
-			sendDataCAN(MASTER_ADDRESS);      //To sensor card
+			sendDataCAN(MASTER_CONTROLLER);      //To sensor card
 			ON_OFF=false;
 			setMacroSubCommand(0);
 			setMacroCommand(0);

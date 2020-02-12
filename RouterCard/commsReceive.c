@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <avr/io.h>
 #include "Definitions.h"
+#include "GlobalCAN_IDs.h"
 #include "FastTransfer/ft.h"
 #include "FastTransfer.h"
 #include "Timer.h"
@@ -22,6 +23,9 @@
 #include "PeripheralSystems.h"
 #include "MacroCommands.h"
 #include "AT90CAN_UART.h"
+
+
+//#define DEBUG
 
 //void clearWatchdog(void);
 //Macro storage variables
@@ -66,7 +70,7 @@ typedef enum {
 } ControlStates;
 char COM_State = UpdateComs;
 
-FT_t  Control_ft_handle;
+
 #define  MACRO_FULL 3
 #define  MACRO_PEND 2
 #define  Connected 1
@@ -76,7 +80,7 @@ char LEDstatus = Disconnected;
 void initCOMs()
 {
 	// Initializing fast transfer for the coms between Controlbox and robot
-	FT_Init(&Control_ft_handle,ROUTER_ADDRESS, USART1_put_C, USART1_get_C, isUART1_ReceiveEmpty);
+	FT_Init(&Control_ft_handle,ROUTER_CARD, USART1_put_C, USART1_get_C, isUART1_ReceiveEmpty);
 
 }
 
@@ -95,7 +99,7 @@ void CommunicationsHandle() {
 
 		if(!checkE_Stop()) {
 			// This mask will control which devices are expected to have a good system status before continuing
-			uint16_t mask = 0;//(1 << MOTOR_ADDRESS);// | (1 << MASTER_ADDRESS) | (1 << GYRO_ADDRESS) ;
+			uint16_t mask = 0;//(1 << MOTOR_CONTROLLER);// | (1 << MASTER_CONTROLLER) | (1 << GYRO_ADDRESS) ;
 			// Verify system statuses
 			if(isSystemReady(mask))
 			{
@@ -119,7 +123,9 @@ void CommunicationsHandle() {
 							}
 							/* transmit macro on CAN bus */
 							sendMacroCommand();
+#ifdef DEBUG
 							printf("transmitting Macro\n");
+#endif
 						}
 					} else
 					{
@@ -128,7 +134,9 @@ void CommunicationsHandle() {
 				}
 				else if(FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX))
 				{
+#ifdef DEBUG
 					printf("macro Received: %d\n",FT_Read(&Control_ft_handle,MACRO_COMMAND_INDEX));
+#endif
 					clearFT_flag(&Control_ft_handle,MACRO_COMMAND_INDEX);
 					// Update Macro System (pending values only given here)
 					if((macroCommand | (FT_Read(&Control_ft_handle,MACRO_COMMAND_INDEX))) != macroCommand)
@@ -143,12 +151,19 @@ void CommunicationsHandle() {
 					// Send the manual commands for the corresponding controller to handle them
 					macroSubmitCount = 0;
 					//TODO: Timer interval needed for sending information
-					sendManualCommand();
+					if(timerDone(&TransmitManual)) {
+						sendManualCommand();
+#ifdef DEBUG
+						//printf("Manual....\n");
+#endif
+					}
 				}
 			}
 			else
 			{
+#ifdef DEBUG
 				printf("System (Error)\n");
+#endif
 				// Clearing status flag to Reject Macros and send system status
 				clearFT_flag (&Control_ft_handle, MACRO_COMMAND_INDEX);
 				FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, STOP_MACRO);
@@ -159,13 +174,18 @@ void CommunicationsHandle() {
 		macroCommand = getCurrentMacro();
 		//Reply to the Control Box with information (Macro status(ONLY if active), UP time)
 		FT_ToSend(&Control_ft_handle, UPTIME_COUNTER_INDEX, getTimeElapsed(&upTimeCounter)/1000);
+
 		FT_ToSend(&Control_ft_handle, MACRO_COMMAND_INDEX, macroCommand);
-		printf("Macro: %d\n",macroCommand);
-		printf("pending: %d\n",pendingMacroIndex);
+#ifdef DEBUG
+//    printf("Uptime: %d\n",getTimeElapsed(&upTimeCounter)/1000);
+//    printf("Macro: %d\n",macroCommand);
+//    printf("pending: %d\n",pendingMacroIndex);
+#endif
 		// Reply to the Control Box with information (Macro status(ONLY if active), UP time)
-		FT_Send(&Control_ft_handle, CONTROL_BOX_ADDRESS);
+		FT_Send(&Control_ft_handle, CONTROLBOX);
 		// Restart the timer since we received data
 		resetTimer(&safetyTimer);
+		getSystemLocData();
 
 
 
@@ -174,7 +194,10 @@ void CommunicationsHandle() {
 	// not connected
 	if(timerDone(&safetyTimer))
 	{
+#if DEBUG
 		printf("Not Connected Error\r");
+
+#endif
 		resetTimer(&upTimeCounter);
 		System_STOP();
 		flashLedColors(LEDSTRIP_CONNECT_PENDING_1,LEDSTRIP_CONNECT_PENDING_2);
@@ -198,8 +221,8 @@ bool checkE_Stop() {
 void System_STOP()
 {
 	// Loading the CAN FastTransfer buffer with macro data
-	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_ADDRESS), STOP_MACRO);
-	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_ADDRESS)+1,0);
+	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD), STOP_MACRO);
+	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD)+1,0);
 	// Sending.... the data on the Global CAN bus to the for processing
 	sendDataCAN(GLOBAL_ADDRESS);
 
@@ -208,7 +231,7 @@ void System_STOP()
 	ToSendCAN(ACTUATORSPEED,0);
 	ToSendCAN(ARMSPEED,0);
 	ToSendCAN(PLOWSPEED,0);
-	sendDataCAN(MOTOR_ADDRESS);
+	sendDataCAN(MOTOR_CONTROLLER);
 
 }
 
@@ -226,8 +249,9 @@ void updateCANFTcoms()
 void sendMacroCommand()
 {
 	// Loading the CAN FastTransfer buffer with macro data
-	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_ADDRESS), FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX));
-	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_ADDRESS)+1,FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
+	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD), FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX));
+	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD)+1,FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
+	printf("MData: %d\n", FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
 	// Sending.... the data on the Global CAN bus to the for processing
 	sendDataCAN(GLOBAL_ADDRESS);
 }
@@ -239,7 +263,7 @@ void sendManualCommand()
 	ToSendCAN(ARMSPEED,FT_Read(&Control_ft_handle, ARMSPEED));
 	//printf("Bucket: %d\n",FT_Read(&Control_ft_handle, ACTUATORSPEED));
 	ToSendCAN(PLOWSPEED,FT_Read(&Control_ft_handle, PLOWSPEED));
-	sendDataCAN(MOTOR_ADDRESS);
+	sendDataCAN(MOTOR_CONTROLLER);
 	//printf("DriveSpeed: %d\n",(signed char)FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
 
 }

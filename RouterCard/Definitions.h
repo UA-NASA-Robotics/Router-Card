@@ -13,34 +13,7 @@
 #define F_CPU 16000000
 #endif
 #include <util/delay.h>
-/****************** SYSTEM ADDRESS ******************/
-typedef enum {
-	CONTROL_BOX_ADDRESS=1,
-	/* -2- */
-	POZYX_ADDRESS,
-	/* -3- */
-	JUICE_BOARD_ADDRESS,
-	/* -4- */
-	ROUTER_ADDRESS,
-	/* -5- */
-	MASTER_ADDRESS,
-	/* -6- */
-	MOTOR_ADDRESS,
-	/* -7- */
-	GYRO_ADDRESS,
-	/* -8- */
-	STRAINSENSOR_ADDRESS,
-	/* -9- */
-	OPTICAL_FLOW_ADDRESS,
-	/* -10- */
-	RASPBERRYPI_ADDRESS,
-	/* -11- */
-	LED_CARD_ADDRESS,
-
-	GLOBAL_ADDRESS = 31
-} SystemAddress_t;
-
-
+#include "GlobalCAN_IDs.h"
 
 #define UART_COMMAND_INDEX      8
 #define UART_COMMAND_DATA_INDEX   9
