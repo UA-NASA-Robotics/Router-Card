@@ -8,14 +8,19 @@
  */
 #include "PeripheralSystems.h"
 //#include "CANFastTransfer.h"
-
 //#include "GlobalCAN_IDs.h"
 #include "CommsIDs.h"
-#include "commsReceive.h"
+//#include "commsReceive.h"
 #include <stdint.h>
+
+FTC_t* ppsftc;
 
 uint16_t currentMacro = 0;
 uint16_t previousMacro = 0;
+
+void SetFTC_Pointer(FTC_t* handle) {
+    ppsftc = handle;
+}
 
 bool isSystemReady(uint16_t _mask)
 {
@@ -36,11 +41,11 @@ uint16_t getSystemStatus()
 	/* Looping through all the devices on the CAN bus */
 	for(i = 1; i<= GLOBAL_DEVICES+1; i++)
 	{
-		if(getGBL_CANFTFlag(getGBL_DEVICE_STATUS(i)))
+		if(getGBL_CANFTFlag(ppsftc, getGBL_DEVICE_STATUS(i)))
 		{
 			/* if there is any device that has a '0' in the first
 			   bit of  their status word isReady will become false*/
-			isReady |= (getGBL_CANFTdata(getGBL_DEVICE_STATUS(i)) & 0x01) << (i);
+			isReady |= (getGBL_CANFTdata(ppsftc, getGBL_DEVICE_STATUS(i)) & 0x01) << (i);
 
 		}
 	}
@@ -56,8 +61,8 @@ uint16_t updateMacroCommand()
 	int i;
 	for(i = 1; i<= GLOBAL_DEVICES+1; i++)
 	{
-		if(getGBL_CANFTdata(getGBL_MACRO_INDEX(i))) {
-			rx_macro |= getGBL_CANFTdata(getGBL_MACRO_INDEX(i));
+		if(getGBL_CANFTdata(ppsftc, getGBL_MACRO_INDEX(i))) {
+			rx_macro |= getGBL_CANFTdata(ppsftc, getGBL_MACRO_INDEX(i));
 		}
 	}
 	if(rx_macro != previousMacro)

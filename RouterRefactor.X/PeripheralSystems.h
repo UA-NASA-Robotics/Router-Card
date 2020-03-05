@@ -11,6 +11,7 @@
 #define PERIPHERALSYSTEM_H
 #include <stdbool.h>
 #include <stdint.h>
+#include "FastTransfer_CAN.h"
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //                       Peripheral System Methods                            //
@@ -33,5 +34,7 @@ uint16_t getCurrentMacro();
 uint16_t getSystemStatus();
 
 void getSystemLocData();
+
+void SetFTC_Pointer(FTC_t* handle);
 
 #endif

@@ -21,7 +21,8 @@
 #include "PeripheralSystems.h"
 
 #include "uart1_config.h"
-#include "uart2_config.h"
+//#include "uart2_config.h"
+#include "mcc_generated_files/can1.h"
 
 #define STOP 0
 
@@ -32,6 +33,7 @@
 //Macro storage variables
 
 FT_t  Control_ft_handle;
+FTC_t can_handle;
 
 int macroCommand=0, macroSubCommand=0;
 enum {
@@ -85,7 +87,8 @@ void initCOMs()
 {
 	// Initializing fast transfer for the coms between Controlbox and robot
 	FT_Init(&Control_ft_handle, ROUTER_CARD, uart1_put_c, uart1_get, uart1_rx_empty);
-	
+	FTC_Init(&can_handle, ROUTER_CARD, 1, CAN1_Initialize, CAN1_transmit, CAN1_receive);
+    SetFTC_Pointer(&can_handle);
 }
 
 
@@ -225,38 +228,53 @@ bool checkE_Stop() {
 void System_STOP()
 {
 	// Loading the CAN FastTransfer buffer with macro data
-	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD), STOP_MACRO);
-	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD)+1,0);
+	///ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD), STOP_MACRO);
+	FTC_ToSend(&can_handle, getGBL_MACRO_INDEX(ROUTER_CARD), STOP_MACRO);
+	///ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD)+1,0);
+	FTC_ToSend(&can_handle, getGBL_MACRO_INDEX(ROUTER_CARD)+1,0);
 	// Sending.... the data on the Global CAN bus to the for processing
-	sendDataCAN(GLOBAL_ADDRESS);
+	///sendDataCAN(GLOBAL_ADDRESS);
+	FTC_Send(&can_handle, GLOBAL_ADDRESS);
 
-
+	/*
 	ToSendCAN(DRIVE_MOTOR_SPEED,0);
 	ToSendCAN(ACTUATORSPEED,0);
 	ToSendCAN(ARMSPEED,0);
 	ToSendCAN(PLOWSPEED,0);
 	sendDataCAN(MOTOR_CONTROLLER);
-
+	*/
+	FTC_ToSend(&can_handle, DRIVE_MOTOR_SPEED,0);
+	FTC_ToSend(&can_handle, ACTUATORSPEED,0);
+	FTC_ToSend(&can_handle, ARMSPEED,0);
+	FTC_ToSend(&can_handle, PLOWSPEED,0);
+	FTC_Send(&can_handle, MOTOR_CONTROLLER);
 }
 
 void sendMacroCommand()
 {
 	// Loading the CAN FastTransfer buffer with macro data
-	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD), FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX));
-	ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD)+1,FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
+	///ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD), FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX));
+	FTC_ToSend(&can_handle, getGBL_MACRO_INDEX(ROUTER_CARD), FT_Read(&Control_ft_handle, MACRO_COMMAND_INDEX));
+	///ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD)+1,FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
+	FTC_ToSend(&can_handle, getGBL_MACRO_INDEX(ROUTER_CARD)+1,FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
 	//printf("MData: %d\n", FT_Read(&Control_ft_handle, CAN_COMMAND_DATA_INDEX));
 	// Sending.... the data on the Global CAN bus to the for processing
-	sendDataCAN(GLOBAL_ADDRESS);
+	FTC_Send(&can_handle, GLOBAL_ADDRESS);
 }
 void sendManualCommand()
 {
-	ToSendCAN(DRIVE_MOTOR_SPEED,FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
+	///ToSendCAN(DRIVE_MOTOR_SPEED,FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
+	FTC_ToSend(&can_handle, DRIVE_MOTOR_SPEED,FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
 	//ToSendCAN(RIGHTMOTORSPEED,rightMotorCommand);
-	ToSendCAN(ACTUATORSPEED,FT_Read(&Control_ft_handle, ACTUATORSPEED));
-	ToSendCAN(ARMSPEED,FT_Read(&Control_ft_handle, ARMSPEED));
+	///ToSendCAN(ACTUATORSPEED,FT_Read(&Control_ft_handle, ACTUATORSPEED));
+	FTC_ToSend(&can_handle, ACTUATORSPEED,FT_Read(&Control_ft_handle, ACTUATORSPEED));
+	///ToSendCAN(ARMSPEED,FT_Read(&Control_ft_handle, ARMSPEED));
+	FTC_ToSend(&can_handle, ARMSPEED,FT_Read(&Control_ft_handle, ARMSPEED));
 	//printf("Bucket: %d\n",FT_Read(&Control_ft_handle, ACTUATORSPEED));
-	ToSendCAN(PLOWSPEED,FT_Read(&Control_ft_handle, PLOWSPEED));
-	sendDataCAN(MOTOR_CONTROLLER);
+	///ToSendCAN(PLOWSPEED,FT_Read(&Control_ft_handle, PLOWSPEED));
+	FTC_ToSend(&can_handle, PLOWSPEED,FT_Read(&Control_ft_handle, PLOWSPEED));
+	///sendDataCAN(MOTOR_CONTROLLER);
+	FTC_Send(&can_handle, MOTOR_CONTROLLER);
 	//printf("DriveSpeed: %d\n",(signed char)FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
 
 }
