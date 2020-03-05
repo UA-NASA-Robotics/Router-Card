@@ -50,7 +50,9 @@
 #include "can1.h"
 #include "ecan1.h"
 #include "dma.h"
-#include "..\FastTransfer_CAN.h"
+
+// pointer to a FastTransfer CAN structure serves as an interface to the library
+struct FastTransferHandle_CAN* pftc;
 
 #define CAN1_TX_DMA_CHANNEL DMA_CHANNEL_1
 #define CAN1_RX_DMA_CHANNEL DMA_CHANNEL_0
@@ -59,6 +61,7 @@
 #define CAN1_MESSAGE_BUFFERS         32
 
 #define CAN1_TX_BUFFER_COUNT 2
+
 
 /******************************************************************************/
 
@@ -111,16 +114,17 @@ void __attribute__((weak, deprecate("This callback ECAN1_CallbackMessageReceived
     CAN1_receive(&rmsg);
     uint32_t addr = (rmsg.frame.id >> 6) & 0x1f;
     if (addr == 4)
-        ReceiveCANFast(&rmsg, FT_LOCAL);
+        FTC_Receive(pftc, &rmsg, FT_LOCAL);
+        //ReceiveCANFast(pftc, &rmsg, FT_LOCAL);
     else if (addr == 31)
-        ReceiveCANFast(&rmsg, FT_GLOBAL);
+        FTC_Receive(pftc, &rmsg, FT_GLOBAL);
+        //ReceiveCANFast(pftc, &rmsg, FT_GLOBAL);
     ECAN1_CallbackMessageReceived();
 }
 
 
 void __attribute__((__interrupt__, no_auto_psv)) _C1Interrupt(void)  
 {   
-
     if (C1INTFbits.ERRIF)
     {
         
@@ -151,7 +155,6 @@ void __attribute__((__interrupt__, no_auto_psv)) _C1Interrupt(void)
         C1INTFbits.RBIF = 0;  
     } 
     
-   
     IFS2bits.C1IF = 0;
 }
 
@@ -166,8 +169,8 @@ void __attribute__((__interrupt__, no_auto_psv)) _C1RxRdyInterrupt(void) {
 /**
   Section: CAN1 APIs
 *****************************************************************************************/
-
-void CAN1_Initialize(void)
+//void CAN1_Initialize(void)
+void CAN1_Initialize(struct FastTransferHandle_CAN* handle)
 {
     // Disable interrupts before the Initialization
     IEC2bits.C1IE = 0;
@@ -279,7 +282,12 @@ void CAN1_Initialize(void)
     
     /* Enable RxReady IEC bit */
     IEC2bits.C1RXIE = 1;
+    
+    // link the CAN implementation to the Fast Transfer library
+    pftc=handle;
 }
+
+
 
 /******************************************************************************
 *                                                                             

@@ -51,13 +51,20 @@
 */
 
 #include "can_types.h"
-
+#include "..\FastTransfer_CAN.h"
+#include <stdint.h>
+#include <stdbool.h>
 #ifdef __cplusplus  // Provide C++ Compatibility
 
     extern "C" {
 
 #endif
 
+/*
+bool IsFIFOIE(void);
+void EnableFIFOI(void);
+void DisableFIFOI(void);
+*/
 /**
   Section: CAN1 Module APIs
 */
@@ -88,7 +95,9 @@
     CAN1_Initialize();
     </code>
  */
-void CAN1_Initialize(void);
+//void CAN1_Initialize(void);
+        
+void CAN1_Initialize(struct FastTransferHandle_CAN* handle);
 
 /******************************************************************************
 *                                                                             

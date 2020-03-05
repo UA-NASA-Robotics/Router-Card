@@ -63,7 +63,7 @@ void __attribute__((weak, deprecate("\nThis will be removed in future MCC releas
 
 void ECAN1_Initialize(void)
 {
-    CAN1_Initialize();
+    //CAN1_Initialize();
 }
 
 /******************************************************************************
