@@ -10,7 +10,7 @@
 #include <stdio.h>
 #endif
 
-void FTC_Init(FTC_t* handle, uint8_t address, int8_t id, void(*mcc_init)(FTC_t*), bool(*f_tx)(CAN_TX_PRIOIRTY, uCAN_MSG*), bool(*f_rx)(uCAN_MSG*)) {
+void FTC_Init(struct FastTransferHandle_CAN* handle, uint8_t address, int8_t id, void(*mcc_init)(struct FastTransferHandle_CAN*), bool(*f_tx)(CAN_TX_PRIOIRTY, uCAN_MSG*), bool(*f_rx)(uCAN_MSG*)) {
     handle->address = address;
     if (id == 1 || id == 2)
     {

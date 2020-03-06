@@ -98,6 +98,7 @@ void DisableFIFOI(void);
 //void CAN1_Initialize(void);
         
 void CAN1_Initialize(struct FastTransferHandle_CAN* handle);
+        //void CAN1_Initialize(FTC_t* handle);
 
 /******************************************************************************
 *                                                                             

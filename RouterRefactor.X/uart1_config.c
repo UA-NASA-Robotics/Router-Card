@@ -33,9 +33,9 @@ void uart1_init(void) {
     
     // pozyxPIC testing
     //ANSELC = 0x003D;                 // disable analog on RC1
-    ANSELC = 0b111101;
-    RPINR18bits.U1RXR = 0b0110001;   // rx on A4
-    RPOR5bits.RP48R = 1;             // tx on A3
+    //ANSELC = 0b111101;
+    //RPINR18bits.U1RXR = 0b0110001;   // rx on A4
+    //RPOR5bits.RP48R = 1;             // tx on A3
 
 
 
@@ -47,6 +47,8 @@ void uart1_init(void) {
     U1STAbits.UTXISEL0 = 1; // interrupt on last bit received
     IFS0bits.U1TXIF = 0; // clear interrupt flag
     IEC0bits.U1TXIE = 1; // enable interrupts
+    IFS0bits.U1RXIF = 0;
+    IEC0bits.U1RXIE = 1;
     U1MODEbits.UARTEN = 1; // enable UART
     U1STAbits.UTXEN = 1; // enable tx
 

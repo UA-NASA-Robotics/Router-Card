@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include "FastTransfer/ring_buffer.h"
 #include "CommsIDs.h"
-#include "CommsDefenition.h"
 #include "mcc_generated_files/can_types.h"
 #include "mcc_generated_files/can1.h"
 
@@ -33,6 +32,7 @@ typedef enum {
 } FT_Type_t;
     
 // fast transfer handle and all necessary local variables
+//struct FastTransferHandle_CAN
 struct FastTransferHandle_CAN
 {
     // address of device
@@ -56,7 +56,6 @@ struct FastTransferHandle_CAN
     volatile int receiveArrayCAN_Global[GLOBAL_DEVICES*GLOBAL_DATA_INDEX_PER_DEVICE + 1];
     bool GBL_CAN_FT_recievedFlag[GLOBAL_DEVICES*GLOBAL_DATA_INDEX_PER_DEVICE + 1];
     bool CAN_FT_recievedFlag[CAN_RECIEVE_SIZE];
-    int ReceiveCAN[CAN_RECIEVE_SIZE];
 };
 typedef struct FastTransferHandle_CAN FTC_t;
 
@@ -69,7 +68,7 @@ typedef struct FastTransferHandle_CAN FTC_t;
     This process is to enable Fast Transfer functions to be used as interrupt callbacks for any CAN module
 */
 
-void FTC_Init(FTC_t* handle, uint8_t address, int8_t can_module_number, void(*mcc_init)(struct FastTransferHandle_CAN*), bool(*mcc_tx)(CAN_TX_PRIOIRTY, uCAN_MSG*), bool(*mcc_rx)(uCAN_MSG*));
+void FTC_Init(struct FastTransferHandle_CAN* handle, uint8_t address, int8_t can_module_number, void(*mcc_init)(struct FastTransferHandle_CAN*), bool(*mcc_tx)(CAN_TX_PRIOIRTY, uCAN_MSG*), bool(*mcc_rx)(uCAN_MSG*));
 
 void FTC_ToSend(FTC_t* handle, unsigned int index, unsigned int data);
 void FTC_Send(FTC_t* handle, unsigned int address);

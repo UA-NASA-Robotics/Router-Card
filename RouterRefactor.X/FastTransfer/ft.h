@@ -20,7 +20,9 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-struct FastTransferHandle {
+//struct FastTransferHandle {
+typedef struct 
+{
 	// local data:
 	uint8_t  address;
 	uint16_t array [ARRAY_SZ];
@@ -46,9 +48,9 @@ struct FastTransferHandle {
 	#ifdef SAFE
 	int(*empty)();
 	#endif
-};
+} FT_t;
 
-typedef struct FastTransferHandle FT_t;
+//typedef struct FastTransferHandle FT_t;
 ///--------------------------------------------------------------------------
 /// FT_t is an alias for a type representing a single fast-transfer handle.
 ///--------------------------------------------------------------------------
