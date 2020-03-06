@@ -10,7 +10,7 @@
 #include <stdio.h>
 #endif
 
-void FTC_Init(struct FastTransferHandle_CAN* handle, uint8_t address, int8_t id, void(*mcc_init)(struct FastTransferHandle_CAN*), bool(*f_tx)(CAN_TX_PRIOIRTY, uCAN_MSG*), bool(*f_rx)(uCAN_MSG*)) {
+void FTC_Init(FTC_t* handle, uint8_t address, int8_t id, void(*mcc_init)(FTC_t*), bool(*f_tx)(CAN_TX_PRIOIRTY, uCAN_MSG*), bool(*f_rx)(uCAN_MSG*)) {
     handle->address = address;
     if (id == 1 || id == 2)
     {
@@ -98,11 +98,11 @@ int getGBL_CANFTdata(FTC_t* handle, int c) {
 }
 
 bool getGBL_CANFTFlag(FTC_t* handle, int c) {
-    return getCANFT_Flag(handle->GBL_CAN_FT_recievedFlag, c);
+    return getCANFT_Flag(handle->receiveArrayAddressCAN_Flag[FT_GLOBAL], c);
 }
 
 bool getCANFT_RFlag(FTC_t* handle, int c) {
-    return getCANFT_Flag(handle->CAN_FT_recievedFlag, c);
+    return getCANFT_Flag(handle->receiveArrayAddressCAN_Flag[FT_LOCAL], c);
 }
 
 void CAN_FrameToArray(uint8_t* msg_array, uCAN_MSG* msg) {
@@ -161,10 +161,9 @@ int * getReceiveArrayCAN(FTC_t* handle) {
 }
 
 void initCANFT(FTC_t* handle) {
-    beginCANFast(handle, handle->receiveArrayCAN, handle->receiveArrayCAN_Flag, sizeof (handle->receiveArrayCAN), handle->address, FT_LOCAL);
+    beginCANFast(handle, handle->receiveArrayCAN, handle->CAN_FT_recievedFlag, sizeof (handle->receiveArrayCAN), handle->address, FT_LOCAL);
     beginCANFast(handle, handle->receiveArrayCAN_Global, handle->GBL_CAN_FT_recievedFlag, sizeof (handle->receiveArrayCAN_Global), GLOBAL_ADDRESS, FT_GLOBAL);
 }
-
 void beginCANFast(FTC_t* handle, volatile int * ptr, volatile bool *flagPtr, unsigned int maxSize, unsigned char givenAddress, FT_Type_t _t) {
 
     handle->receiveArrayAddressCAN[_t] = ptr;
