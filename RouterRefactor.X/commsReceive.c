@@ -7,22 +7,31 @@
  *
  * System wiki : https://github.com/UA-NASA-Robotics/ROCKEE_Router-Card/wiki
  */
-#include "FastTransfer_CAN.h"
-#include <stdlib.h>
-//#include <avr/io.h>
-//#include "Definitions.h"
-#include "CommsIDs.h"
-//#include "FastTransfer.h"
-#include "timers.h"
-//#include "LEDs.h"
-#include "CommsDefenition.h"
 
 #include "commsReceive.h"
+#include "FastTransfer_CAN.h"
+#include "CommsIDs.h"
+#include "timers.h"
+
 #include "PeripheralSystems.h"
 
 #include "uart1_config.h"
+// to be added
 //#include "uart2_config.h"
 #include "mcc_generated_files/can1.h"
+#include <stdlib.h>
+
+
+#define STOP_MACRO 0
+
+//CAN INDEXs
+
+#define CAN_COMMAND_INDEX       8
+#define MACRO_COMMAND_INDEX   CAN_COMMAND_INDEX
+#define CAN_COMMAND_DATA_INDEX  9
+
+#define UPTIME_COUNTER_INDEX      1
+
 
 #define STOP 0
 

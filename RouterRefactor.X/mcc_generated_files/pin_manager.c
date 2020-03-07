@@ -102,9 +102,22 @@ void PIN_MANAGER_Initialize (void)
     __builtin_write_OSCCONL(OSCCON & 0xbf); // unlock PPS
 
     RPINR18bits.U1RXR = 0x0031;    //RC1->UART1:U1RX
-    RPINR26bits.C1RXR = 0x0037;    //RC7->ECAN1:C1RX
+    
+    //pozyx
+    //RPINR26bits.C1RXR = 0x0037;    //RC7->ECAN1:C1RX
+    
+    //RPINR26bits.C1RXR = 0b0110110;    //RC6->ECAN1:C1RX
+    RPINR26bits.C1RXR = 0x0036;    //RC6->ECAN1:C1RX
     RPOR5bits.RP48R = 0x0001;    //RC0->UART1:U1TX
-    RPOR6bits.RP54R = 0x000E;    //RC6->ECAN1:C1TX
+    
+    //pozyx
+    //RPOR6bits.RP54R = 0x000E;    //RC6->ECAN1:C1TX
+    
+    //RPOR6bits.RP55R = 0b001110;    //RC7->ECAN1:C1TX
+    RPOR6bits.RP55R = 0x000E;    //RC7->ECAN1:C1TX
+    RPINR19bits.U2RXR = 0b0110111; // rx on rp55 (rx1, pin3)
+    RPOR6bits.RP54R = 0b000011;    // tx on rp54 (tx1, pin2)
+    
 
     __builtin_write_OSCCONL(OSCCON | 0x40); // lock PPS
 }

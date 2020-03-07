@@ -18,7 +18,6 @@
 extern "C" {
 #endif
 
-//void uart2_init(int baud);
 void uart2_init(void);
 void uart2_put(uint8_t val);
 void uart2_put_c(uint8_t val);
@@ -26,7 +25,9 @@ uint8_t uart2_get();
 uint8_t uart2_peek();
 bool uart2_rx_empty();
 uint8_t* uart2_rx_getarray();
-
+void uart2_enable(void);
+void uart2_disable(void);
+bool uart2_isenabled(void);
 #ifdef	__cplusplus
 }
 #endif

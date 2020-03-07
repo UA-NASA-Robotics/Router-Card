@@ -14,12 +14,10 @@ void timer1_init(void) {
 
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
     ms++;
-    if (ms > 65535)
-        ms=0;
     IFS0bits.T1IF = 0;
 }
 
-unsigned long long get_ms(void) {
+unsigned long long millis(void) {
     return ms;
 }
 

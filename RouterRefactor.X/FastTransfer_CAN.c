@@ -80,7 +80,7 @@ int getCANFTdatas(FTC_t* handle, int index, bool _isGlobal) {
     return 0;
 }
 
-bool getCANFT_Flag(bool* receiveArray, int index) {
+bool getCANFT_Flag(volatile bool* receiveArray, int index) {
     if (receiveArray[index] == false) {
         return false;
     } else {
@@ -164,7 +164,7 @@ void initCANFT(FTC_t* handle) {
     beginCANFast(handle, handle->receiveArrayCAN, handle->CAN_FT_recievedFlag, sizeof (handle->receiveArrayCAN), handle->address, FT_LOCAL);
     beginCANFast(handle, handle->receiveArrayCAN_Global, handle->GBL_CAN_FT_recievedFlag, sizeof (handle->receiveArrayCAN_Global), GLOBAL_ADDRESS, FT_GLOBAL);
 }
-void beginCANFast(FTC_t* handle, volatile int * ptr, volatile bool *flagPtr, unsigned int maxSize, unsigned char givenAddress, FT_Type_t _t) {
+void beginCANFast(FTC_t* handle, volatile int * ptr, volatile bool *flagPtr, uint16_t maxSize, uint8_t givenAddress, FT_Type_t _t) {
 
     handle->receiveArrayAddressCAN[_t] = ptr;
     handle->receiveArrayAddressCAN_Flag[_t] = flagPtr;
@@ -292,12 +292,12 @@ bool TransmitCANFast(FTC_t* handle, uCAN_MSG *p) // interrupt callback
         CAN_FrameToArray(msg_arr, p);
         //if more than 2 data/index pairs left might be able to send large packet. 
         if (rbuffer_size(&handle->transmit_buffer_CAN) > 6) {
-            unsigned int address = rbuffer_pop(&handle->transmit_buffer_CAN);
+            uint16_t address = rbuffer_pop(&handle->transmit_buffer_CAN);
             p->frame.id = (address << 6) + handle->address; //MY_ADDRESS; //not passed through messages will have wrong sender address
             //we are good to send the first index/value pair for sure. 
             int i = 0;
             for (i = 0; i < 2; i++) {
-                unsigned int temp = rbuffer_pop(&handle->transmit_buffer_CAN);
+                uint16_t temp = rbuffer_pop(&handle->transmit_buffer_CAN);
                 msg_arr[2 * i] = (temp >> 8);
                 msg_arr[2 * i + 1] = temp;
             }
@@ -307,7 +307,7 @@ bool TransmitCANFast(FTC_t* handle, uCAN_MSG *p) // interrupt callback
                 rbuffer_pop(&handle->transmit_buffer_CAN); //call this to clear out the address
                 int i = 0;
                 for (i = 2; i < 4; i++) {
-                    unsigned int temp = rbuffer_pop(&handle->transmit_buffer_CAN);
+                    uint16_t temp = rbuffer_pop(&handle->transmit_buffer_CAN);
                     msg_arr[2 * i] = (temp >> 8);
                     msg_arr[2 * i + 1] = temp;
                 }
@@ -328,12 +328,12 @@ bool TransmitCANFast(FTC_t* handle, uCAN_MSG *p) // interrupt callback
             //will read the "wrong" length correctly, but realize this is the last packet.
             //note: still need to check incase two different destinations. 
         else if (rbuffer_size(&handle->transmit_buffer_CAN) == 6) {
-            unsigned int address = rbuffer_pop(&handle->transmit_buffer_CAN);
+            uint16_t address = rbuffer_pop(&handle->transmit_buffer_CAN);
             p->frame.id = (address << 6) + handle->address;//MY_ADDRESS; //not passed through messages will have wrong sender address
             //we are good to send the first index/value pair for sure.
             int i = 0;
             for (i = 0; i < 2; i++) {
-                unsigned int temp = rbuffer_pop(&handle->transmit_buffer_CAN);
+                uint16_t temp = rbuffer_pop(&handle->transmit_buffer_CAN);
                 msg_arr[2 * i] = (temp >> 8); //this is so dumb
                 msg_arr[2 * i + 1] = temp;
             }
@@ -343,7 +343,7 @@ bool TransmitCANFast(FTC_t* handle, uCAN_MSG *p) // interrupt callback
                 rbuffer_pop(&handle->transmit_buffer_CAN); //call this to clear out the address
                 int i = 0;
                 for (i = 2; i < 4; i++) {
-                    unsigned int temp = rbuffer_pop(&handle->transmit_buffer_CAN);
+                    uint16_t temp = rbuffer_pop(&handle->transmit_buffer_CAN);
                     msg_arr[2 * i] = (temp >> 8);
                     msg_arr[2 * i + 1] = temp;
                 }
@@ -355,12 +355,12 @@ bool TransmitCANFast(FTC_t* handle, uCAN_MSG *p) // interrupt callback
             SetCANFrameData(p, msg_arr);
         }            //if only 1 data/index pair receiver will know it is the last packet.
         else if (rbuffer_size(&handle->transmit_buffer_CAN) == 3) {
-            unsigned int address = rbuffer_pop(&handle->transmit_buffer_CAN);
+            uint16_t address = rbuffer_pop(&handle->transmit_buffer_CAN);
             p->frame.id = (address << 6) + handle->address;//MY_ADDRESS; //not passed through messages will have wrong sender address
             p->frame.dlc = 4;
             int i = 0;
             for (i = 0; i < 2; i++) {
-                unsigned int temp = rbuffer_pop(&handle->transmit_buffer_CAN);
+                uint16_t temp = rbuffer_pop(&handle->transmit_buffer_CAN);
                 msg_arr[2 * i] = (temp >> 8);
                 msg_arr[2 * i + 1] = temp;
             }
@@ -395,12 +395,12 @@ int GlobalAddressInterpret(FTC_t* handle, int index) {
     return handle->address * GLOBAL_SYSTEM_DATA_SIZE + index;
 }
 
-void FTC_ToSend(FTC_t* handle, unsigned int where, unsigned int what) {
+void FTC_ToSend(FTC_t* handle, uint16_t where, uint16_t what) {
     rbuffer_push2(&handle->send_buffer_CAN_FT, where >> 8, where);
     rbuffer_push2(&handle->send_buffer_CAN_FT, what >>8, what);
 }
 
-void FTC_Send(FTC_t* handle, unsigned int whereToSend) {
+void FTC_Send(FTC_t* handle, uint16_t whereToSend) {
     //NEW STATIC METHOD
     //int temp = rbuffer_size(&handle->send_buffer_CAN_FT); //get size of things to send
 
@@ -463,12 +463,12 @@ uCAN_MSG BufferToMSG(struct ring_buffer_t* buf, uint32_t sender, uint32_t whereT
 
 
 /*
-void ToSendCAN(unsigned int where, unsigned int what) {
+void ToSendCAN(uint16_t where, uint16_t what) {
     rbuffer_push2(&send_buffer_CAN_FT, where >> 8, where);
     rbuffer_push2(&send_buffer_CAN_FT, what >>8, what);
 }
 
-void sendDataCAN(unsigned int whereToSend) {
+void sendDataCAN(uint16_t whereToSend) {
     //NEW STATIC METHOD
     int temp = rbuffer_size(&send_buffer_CAN_FT); //get size of things to send
 

@@ -52,10 +52,10 @@
 #include "dma.h"
 
 /* Null weak implementations of callback functions. */
-void __attribute__((weak, deprecate("\nThis will be removed in future MCC releases. \nUse CAN1_CallbackBusOff instead. "))) ECAN1_CallbackBusOff(void){}
-void __attribute__((weak, deprecate("\nThis will be removed in future MCC releases. \nUse CAN1_CallbackTxErrorPassive instead. "))) ECAN1_CallbackTxErrorPassive(void){}
-void __attribute__((weak, deprecate("\nThis will be removed in future MCC releases. \nUse CAN1_CallbackRxErrorPassive instead. "))) ECAN1_CallbackRxErrorPassive(void){}
-void __attribute__((weak, deprecate("\nThis will be removed in future MCC releases. \nUse CAN1_CallbackMessageReceived instead. "))) ECAN1_CallbackMessageReceived(void){}
+void ECAN1_CallbackBusOff(void){}
+void ECAN1_CallbackTxErrorPassive(void){}
+void ECAN1_CallbackRxErrorPassive(void){}
+void ECAN1_CallbackMessageReceived(void){}
 
 /**
   Section: ECAN1 APIs

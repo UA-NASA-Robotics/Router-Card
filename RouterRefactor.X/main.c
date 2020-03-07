@@ -23,12 +23,10 @@ int main(void) {
         FT_Send(&ft_handle, 4);
         unsigned int stuff;
         stuff = FT_Receive(&ft_handle);
-        //ReceiveDataCAN(&ftc_handle, FT_LOCAL);
-        //ReceiveDataCAN(&ftc_handle, FT_GLOBAL);
-        //ToSendCAN(4, 0x55AA);
-        //sendDataCAN(6);
-        //FTC_ToSend(&ftc_handle, 4, 0x55AA);
-        //FTC_Send(&ftc_handle, 6);
+        ReceiveDataCAN(&ftc_handle, FT_LOCAL);
+        ReceiveDataCAN(&ftc_handle, FT_GLOBAL);
+        FTC_ToSend(&ftc_handle, 4, 0x55AA);
+        FTC_Send(&ftc_handle, 6);
         LATBbits.LATB10 ^= 1;
         __delay_ms(1000);
         //CommunicationsHandle();

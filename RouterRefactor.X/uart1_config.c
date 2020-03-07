@@ -1,7 +1,6 @@
 #include "uart1_config.h"
 #include "FastTransfer/ring_buffer.h"
 
-
 struct ring_buffer_t u1rx_buffer;
 struct ring_buffer_t u1tx_buffer;
 bool tx1_stall = true;
@@ -41,7 +40,8 @@ void uart1_init(void) {
 
     //U1MODEbits.BRGH = 1; // high speed 4x baud
     U1MODEbits.BRGH = 0;
-    //U1BRG = 130 - 1; // need to work on macro->mplab does not like
+    
+    //pozyx testing (same for RouterCard)
     U1BRG = 16 - 1;
     //U1BRG = 0x40;
     U1STAbits.UTXISEL0 = 1; // interrupt on last bit received
@@ -51,7 +51,6 @@ void uart1_init(void) {
     IEC0bits.U1RXIE = 1;
     U1MODEbits.UARTEN = 1; // enable UART
     U1STAbits.UTXEN = 1; // enable tx
-
 }
 
 void uart1_put(uint8_t val) {
@@ -88,6 +87,30 @@ bool uart1_rx_empty() {
 
 uint8_t* uart1_rx_getarray() {
     return rbuffer_getarray(&u1rx_buffer);
+}
+
+
+void uart1_enable(void) {
+    IFS0bits.U1TXIF = 0;
+    IFS0bits.U1RXIF = 0;
+    IEC0bits.U1TXIE = 1;
+    IEC0bits.U1RXIE = 1;
+    U1MODEbits.UARTEN = 1;
+    U1STAbits.UTXEN = 1;
+}
+void uart1_disable(void) {
+    IFS0bits.U1TXIF = 0;
+    IFS0bits.U1RXIF = 0;
+    IEC0bits.U1TXIE = 0;
+    IEC0bits.U1RXIE = 0;
+    U1MODEbits.UARTEN = 0;
+    U1STAbits.UTXEN = 0;
+}
+bool uart1_isenabled(void) {
+    if (U1MODEbits.UARTEN == 1)
+        return true;
+    else
+        return false;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt(void) {

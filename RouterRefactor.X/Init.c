@@ -3,6 +3,7 @@
 #include "uart1_config.h"
 //#include "uart2_config.h"
 #include "mcc_generated_files/system.h"
+#include "mcc_generated_files/can1.h"
 #include "commsReceive.h"
 
 void init(void) {

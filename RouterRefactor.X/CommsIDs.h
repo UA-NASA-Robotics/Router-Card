@@ -13,8 +13,8 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    typedef enum
-    {
+
+    typedef enum {
         CONTROL_BOX = 1,
         POZYX,
         JUICE_BOARD,
@@ -27,10 +27,11 @@ extern "C" {
         RASP_PI,
         LED_CARD,
         LIDAR,
+        TETHER_CARD,
         GLOBAL_ADDRESS = 31
     } Addresses_t;
-    typedef enum
-    {
+
+    typedef enum {
         DEVICE_STATUS,
         DEVICE_MACRO,
         DATA_0,
@@ -39,12 +40,12 @@ extern "C" {
         DATA_3,
         DATA_4
     } GlobalDeviceData_t;
-    #define GLOBAL_DEVICES 10
-    #define GLOBAL_DATA_INDEX_PER_DEVICE 7
-    #define getGBL_START_INDEX(c) c*GLOBAL_DATA_INDEX_PER_DEVICE
-    #define getGBL_DEVICE_STATUS(c) c*GLOBAL_DATA_INDEX_PER_DEVICE + DEVICE_STATUS
-    #define getGBL_MACRO_INDEX(c) c*GLOBAL_DATA_INDEX_PER_DEVICE + DEVICE_MACRO
-    #define getGBL_INDEX(c,d)  c*GLOBAL_DATA_INDEX_PER_DEVICE + d
+#define GLOBAL_DEVICES 12
+#define GLOBAL_DATA_INDEX_PER_DEVICE 7
+#define getGBL_START_INDEX(c) c*GLOBAL_DATA_INDEX_PER_DEVICE
+#define getGBL_DEVICE_STATUS(c) c*GLOBAL_DATA_INDEX_PER_DEVICE + DEVICE_STATUS
+#define getGBL_MACRO_INDEX(c) c*GLOBAL_DATA_INDEX_PER_DEVICE + DEVICE_MACRO
+#define getGBL_INDEX(c,d)  c*GLOBAL_DATA_INDEX_PER_DEVICE + d
 #ifdef	__cplusplus
 }
 #endif

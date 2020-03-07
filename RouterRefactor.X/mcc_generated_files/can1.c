@@ -52,8 +52,7 @@
 #include "dma.h"
 
 // pointer to a FastTransfer CAN structure serves as an interface to the library
-struct FastTransferHandle_CAN* pftc;
-//FTC_t* pftc;
+FTC_t* pftc;
 
 #define CAN1_TX_DMA_CHANNEL DMA_CHANNEL_1
 #define CAN1_RX_DMA_CHANNEL DMA_CHANNEL_0
@@ -95,19 +94,19 @@ static void CAN1_DMACopy(uint8_t buffer_number, uCAN_MSG *message);
 static void CAN1_MessageToBuffer(uint16_t* buffer, uCAN_MSG* message);
 
 /* Null weak implementations of callback functions. */
-void __attribute__((weak, deprecate("This callback ECAN1_CallbackBusOff() call will removed later"))) CAN1_CallbackBusOff(void) {
+void CAN1_CallbackBusOff(void) {
     ECAN1_CallbackBusOff();
 }
 
-void __attribute__((weak, deprecate("This callback ECAN1_CallbackTxErrorPassive() call will removed later"))) CAN1_CallbackTxErrorPassive(void) {
+void CAN1_CallbackTxErrorPassive(void) {
     ECAN1_CallbackTxErrorPassive();
 }
 
-void __attribute__((weak, deprecate("This callback ECAN1_CallbackRxErrorPassive() call will removed later"))) CAN1_CallbackRxErrorPassive(void) {
+void  CAN1_CallbackRxErrorPassive(void) {
     ECAN1_CallbackRxErrorPassive();
 }
 
-void __attribute__((weak, deprecate("This callback ECAN1_CallbackMessageReceived() call will removed later"))) CAN1_CallbackMessageReceived(void) {
+void CAN1_CallbackMessageReceived(void) {
     uCAN_MSG rmsg;
     CAN1_receive(&rmsg);
     uint32_t addr = (rmsg.frame.id >> 6) & 0x1f;
@@ -163,7 +162,7 @@ void __attribute__((__interrupt__, no_auto_psv)) _C1RxRdyInterrupt(void) {
  *****************************************************************************************/
 //void CAN1_Initialize(void)
 
-void CAN1_Initialize(struct FastTransferHandle_CAN* handle) {
+void CAN1_Initialize(FTC_t* handle) {
     // Disable interrupts before the Initialization
     IEC2bits.C1IE = 0;
     C1INTE = 0;
