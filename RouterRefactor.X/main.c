@@ -1,3 +1,5 @@
+// testing on pozyx
+/*
 #include "Init.h"
 #include "timers.h"
 //#include "commsReceive.h"
@@ -30,6 +32,18 @@ int main(void) {
         LATBbits.LATB10 ^= 1;
         __delay_ms(1000);
         //CommunicationsHandle();
+    }
+    return 0;
+}
+*/
+
+#include "Init.h"
+
+int main(void)
+{
+    init();
+    while(1) {
+        CommunicationsHandle();
     }
     return 0;
 }
