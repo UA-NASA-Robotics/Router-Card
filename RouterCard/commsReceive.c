@@ -2,7 +2,7 @@
  * commsReceive.c
  *
  * Created: 4/26/2017 2:22:24 PM
- *  Author: Zac
+ *  Author: Seth
  */
 
 #include <stdlib.h>
