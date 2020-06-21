@@ -72,9 +72,9 @@ uint16_t getCurrentMacro()
 }
 void getSystemLocData()
 {
-	int x = getGBL_CANFTdata(getGBL_INDEX(MASTER_CONTROLLER,DATA_0));
-	int y = getGBL_CANFTdata(getGBL_INDEX(MASTER_CONTROLLER,DATA_1));
-	int h = getGBL_CANFTdata(getGBL_INDEX(MASTER_CONTROLLER,DATA_3));
+	int x = getGBL_CANFTdata(getGBL_INDEX(POZYX,DATA_0));
+	int y = getGBL_CANFTdata(getGBL_INDEX(POZYX,DATA_1));
+	int h = getGBL_CANFTdata(getGBL_INDEX(GYRO_CONTROLLER,DATA_0));
 	FT_ToSend(&Control_ft_handle, 10, x);
 	FT_ToSend(&Control_ft_handle, 11, y);
 	FT_ToSend(&Control_ft_handle, 12, h);
