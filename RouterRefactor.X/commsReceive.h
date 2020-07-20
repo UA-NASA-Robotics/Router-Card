@@ -29,15 +29,10 @@
 void CommunicationsHandle(void);
 
 void initCOMs(void);
-bool manualMode(void);
 void setupCommsTimers(void);
 void updateComms(void);
 void updateComs2(void);
-void parseComms(void);
-int getMacroCommand(void);
-int getMacroSubCommand(void);
 
-void setMacroCommand(int m);
-void setMacroSubCommand(int ms);
+
 
 #endif /* COMMSRECEIVE_H_ */

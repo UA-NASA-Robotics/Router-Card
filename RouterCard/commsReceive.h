@@ -26,7 +26,6 @@
 FT_t  Control_ft_handle;
 
 void initCOMs(void);
-bool manualMode(void);
 void setupCommsTimers(void);
 void updateComms(void);
 void updateComs2(void);

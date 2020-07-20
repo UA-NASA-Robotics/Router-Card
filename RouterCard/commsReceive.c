@@ -308,11 +308,6 @@ void parseComms(void)
 
 }
 
-bool manualMode(void)
-{
-	return (macroCommand==0);
-}
-
 void setupCommsTimers(void)
 {
 	setTimerInterval(&macroResubmitTimer,500);

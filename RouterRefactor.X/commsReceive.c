@@ -63,7 +63,6 @@ timer_t safetyTimer,commsTimer,commsTimerBeacon,checkCANTimer;
 //Flag that says we are ready to send back to the control box
 bool readyToSend=false;
 void updateCANFTcoms();
-void clearMotorCommandVars();
 bool checkE_Stop();
 void System_STOP();
 void sendMacroCommand();
@@ -237,9 +236,9 @@ bool checkE_Stop() {
 void System_STOP()
 {
 	// Loading the CAN FastTransfer buffer with macro data
-	///ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD), STOP_MACRO);
+	//Sending a Null macro (no macro)
 	FTC_ToSend(&can_handle, getGBL_MACRO_INDEX(ROUTER_CARD), STOP_MACRO);
-	///ToSendCAN(getGBL_MACRO_INDEX(ROUTER_CARD)+1,0);
+	//Clearing Macro Data
 	FTC_ToSend(&can_handle, getGBL_MACRO_INDEX(ROUTER_CARD)+1,0);
 	// Sending.... the data on the Global CAN bus to the for processing
 	///sendDataCAN(GLOBAL_ADDRESS);
@@ -272,67 +271,12 @@ void sendMacroCommand()
 }
 void sendManualCommand()
 {
-	///ToSendCAN(DRIVE_MOTOR_SPEED,FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
 	FTC_ToSend(&can_handle, DRIVE_MOTOR_SPEED,FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
-	//ToSendCAN(RIGHTMOTORSPEED,rightMotorCommand);
-	///ToSendCAN(ACTUATORSPEED,FT_Read(&Control_ft_handle, ACTUATORSPEED));
 	FTC_ToSend(&can_handle, ACTUATORSPEED,FT_Read(&Control_ft_handle, ACTUATORSPEED));
-	///ToSendCAN(ARMSPEED,FT_Read(&Control_ft_handle, ARMSPEED));
 	FTC_ToSend(&can_handle, ARMSPEED,FT_Read(&Control_ft_handle, ARMSPEED));
-	//printf("Bucket: %d\n",FT_Read(&Control_ft_handle, ACTUATORSPEED));
-	///ToSendCAN(PLOWSPEED,FT_Read(&Control_ft_handle, PLOWSPEED));
 	FTC_ToSend(&can_handle, PLOWSPEED,FT_Read(&Control_ft_handle, PLOWSPEED));
-	///sendDataCAN(MOTOR_CONTROLLER);
 	FTC_Send(&can_handle, MOTOR_CONTROLLER);
-	//printf("DriveSpeed: %d\n",(signed char)FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED));
 
-}
-
-void clearMotorCommandVars()
-{
-	//int * receiveArrayAdd = getReceiveArray0();
-
-    uint16_t* receiveArrayAdd = Control_ft_handle.array;
-    
-	leftMotorCommand    =0;
-	rightMotorCommand   =0;
-
-	actuatorSpeed  =0;
-	armMotorCommand     =0;
-	plowMotorCommand    =0;
-
-	receiveArrayAdd[DRIVE_MOTOR_SPEED] = 0;
-	receiveArrayAdd[ACTUATORSPEED] = 0;
-	receiveArrayAdd[ARMSPEED]=0;
-	receiveArrayAdd[PLOWSPEED]=0;
-
-
-
-}
-void parseComms(void)
-{
-
-
-// #ifndef REVERSE_LEFT_RIGHT
-//  leftMotorCommand    =(int)FT_Read(&Control_ft_handle, DRIVE_MOTOR_SPEED);
-//  rightMotorCommand   =(int)FT_Read(&Control_ft_handle, RIGHTMOTORSPEED);
-// #else
-//  leftMotorCommand    =(int)FT_Read(&Control_ft_handle, RIGHTMOTORSPEED);
-//  rightMotorCommand   =(int)FT_Read(&Control_ft_handle, LEFTMOTORSPEED);
-// #endif
-
-	actuatorSpeed  =   FT_Read(&Control_ft_handle, ACTUATORSPEED);
-	armMotorCommand     =   FT_Read(&Control_ft_handle, ARMSPEED);
-	plowMotorCommand    = FT_Read(&Control_ft_handle,PLOWSPEED);
-
-	//macroCommand        = FT_Read(&Control_ft_handle,MACROCOMMAND);
-	//macroSubCommand     = FT_Read(&Control_ft_handle,MACROSUBCOMMAND);
-
-}
-
-bool manualMode(void)
-{
-	return (macroCommand==0);
 }
 
 void setupCommsTimers(void)
@@ -346,23 +290,3 @@ void setupCommsTimers(void)
 	setTimerInterval(&TransmitManual, 50);
 }
 
-int getMacroCommand(void)
-{
-	return macroCommand;
-}
-
-int getMacroSubCommand(void)
-{
-	return macroSubCommand;
-}
-
-void setMacroCommand(int m)
-{
-	macroCommand=m;
-
-}
-
-void setMacroSubCommand(int ms)
-{
-	macroSubCommand=ms;
-}
