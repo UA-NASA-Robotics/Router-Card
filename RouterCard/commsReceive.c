@@ -110,7 +110,7 @@ void updateComs2(void)
 		//FT_Receive(&Control_ft_handle);
 		MacroModified = FT_Modified(&Control_ft_handle,MACRO_COMMAND_INDEX);
 		/* If we have a new macro */
-		if(MacroModified == true && MACRO_COMMAND != STOP_MACRO)// && (timerDone(&macroResubmitTimer) || macroCompletedLongAgo) )//|| (previousMacroSubCommand!=macroSubCommand))
+		if(MacroModified && MACRO_COMMAND != STOP_MACRO)// && (timerDone(&macroResubmitTimer) || macroCompletedLongAgo) )//|| (previousMacroSubCommand!=macroSubCommand))
 		{
 			//toggleLED(11);
 			MacroStatus = Pending;
@@ -124,8 +124,8 @@ void updateComs2(void)
 		{
 			toggleLED(12);
 			System_STOP();
-			MacroStatus = Idle;
-			macroCommand = MACRO_COMMAND;
+			// MacroStatus = Idle;
+			// macroCommand = MACRO_COMMAND;
 			previousMacroCommand = STOP_MACRO;
 			SetNeoPixRGB(LEDSTRIP_CONNECTED);
 
@@ -134,7 +134,7 @@ void updateComs2(void)
 		if(MacroStatus == Active)
 		{
 			LEDstatus = MACRO_PEND;
-			if(getCANFT_RFlag(CAN_COMMAND_INDEX) == true && getCANFTdata(SENDER_ADDRESS_INDEX) == MasterAddress) {
+			if(getCANFT_RFlag(CAN_COMMAND_INDEX) && getCANFTdata(SENDER_ADDRESS_INDEX) == MasterAddress) {
 				if(LEDstatus !=MACRO_FULL)
 					SetNeoPixRGB(LEDSTRIP_MACRO_RUNNING);
 				if(getCANFTdata(CAN_COMMAND_INDEX) == STOP_MACRO) {
@@ -154,7 +154,7 @@ void updateComs2(void)
 			toggleLED(2);
 
 			flashLedColors(LEDSTRIP_CONNECT_PENDING_1,LEDSTRIP_CONNECT_PENDING_2);
-			if(getCANFT_RFlag(CAN_COMMAND_INDEX) == true && getCANFTdata(SENDER_ADDRESS_INDEX) == MasterAddress) {
+			if(getCANFT_RFlag(CAN_COMMAND_INDEX) && getCANFTdata(SENDER_ADDRESS_INDEX) == MasterAddress) {
 
 				if(getCANFTdata(CAN_COMMAND_INDEX) == macroCommand) {
 
@@ -208,8 +208,8 @@ void updateComs2(void)
 				LEDstatus = Disconnected;
 				if(timerDone(&macroResubmitTimer)) {
 					System_STOP();
-					macroCommand = STOP_MACRO;
-					MacroStatus = Idle;
+					// macroCommand = STOP_MACRO;
+					// MacroStatus = Idle;
 					toggleLED(5);
 				}
 			}
@@ -312,21 +312,20 @@ void updateComms(void)
 
 	if(timerDone(&commsTimer)) //Check the comms when the timer says to
 	{
-		bool gotData=false;
+		//bool gotData=false;
 
 		//If there is a new incoming data packet from the control box
 		if(receiveData1())  //PULL IT ALL OUT
 		{
 			//PORTA^=(0x80); //Toggle A7 when received
-			gotData=true;
+			//gotData=true;
 
 
 			resetTimer(&ohShitWeAreDeadTimer);
-		}
+		
 
 		//ONLY PROCESS DATA IF THE RECEIVE LOOP GOT DATA
-		if(gotData)
-		{
+		
 
 			//Look through the packet and sort incoming data
 			parseComms();
@@ -377,6 +376,7 @@ void updateComms(void)
 
 			//Reset the timer to delay a short while before sending back
 			resetTimer(&sendBackTimer);
+		
 		}
 		//Reset the check comms timer
 		resetTimer(&commsTimer);
@@ -402,9 +402,9 @@ void updateComms(void)
 
 		}
 	}
-	else
-	{
-	}
+	// else
+	// {
+	// }
 }
 
 void updateCANFTcoms()
