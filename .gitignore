@@ -16,3 +16,5 @@ doc/html/**/*
 asset.cache
 *.DS_Store
 RouterCard/CANFastTransfer.h.rej
+/RouterRefactor.X/build/
+/RouterRefactor.X/dist/

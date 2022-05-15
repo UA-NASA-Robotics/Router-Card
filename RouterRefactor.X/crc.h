@@ -11,3 +11,6 @@ uint8_t crc (uint8_t const *, uint8_t);
 }
 #endif
 #endif // FT_CRC_H
+
+
+

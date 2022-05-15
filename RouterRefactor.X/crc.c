@@ -30,3 +30,5 @@ uint8_t crc (uint8_t const *arr, uint8_t size) {
 
 	return value;
 }
+
+

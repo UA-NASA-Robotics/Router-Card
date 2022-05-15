@@ -14,7 +14,8 @@
 extern "C" {
 #endif
 
-timer1_init(void);
+extern volatile unsigned long ms;
+void timer1_init(void);
 unsigned long get_ms(void);
 
 #ifdef	__cplusplus

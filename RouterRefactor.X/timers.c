@@ -9,7 +9,7 @@ void timer1_init(void) {
     T1CONbits.TON = 1;
 }
 
-extern volatile unsigned long ms;
+volatile unsigned long ms = 0;
 
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
     ms++;

@@ -1,3 +1,6 @@
+
+
+#include <stdint.h>
 #include "buffer.h"
 
 void Buffer_init (Buffer_t * buffer)
@@ -60,3 +63,4 @@ void Buffer_clear(Buffer_t *buf)
 	buf->head = 0;
 	buf->tail = 0;
 }
+

@@ -1,4 +1,5 @@
 #include "Init.h"
+#include "../RouterRefactor.X/mcc_generated_files/system.h"
 #include "timers.h"
 #include "uart1_config.h"
 #include "uart2_config.h"
