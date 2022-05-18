@@ -2,6 +2,7 @@
 
 struct ring_buffer_t u1rx_buffer;
 struct ring_buffer_t u1tx_buffer;
+bool tx1_stall = true;
 
 /*
 void uart1_init(int baud) {
@@ -39,12 +40,54 @@ void uart1_put(uint8_t val) {
     rbuffer_push(&u1tx_buffer, val);
 }
 
+void uart1_put_c(uint8_t val) {
+    IEC0bits.U1TXIE = 0;
+    rbuffer_push(&u1tx_buffer, val);
+    if (tx1_stall == true)
+    {
+        tx1_stall = false;
+        U1TXREG = rbuffer_pop(&u1tx_buffer);
+    }   
+    IEC0bits.U1TXIE = 1;
+}
+
 uint8_t uart1_peek() {
     return rbuffer_peek(&u1rx_buffer);
 }
 
 uint8_t uart1_get() {
     return rbuffer_pop(&u1rx_buffer);
+}
+
+bool uart1_rx_empty() {
+    return rbuffer_empty(&u1rx_buffer);
+}
+
+uint8_t* uart1_rx_getarray() {
+    return rbuffer_getarray(&u1rx_buffer);
+}
+
+void uart1_enable(void) {
+    IFS0bits.U1TXIF = 0;
+    IFS0bits.U1RXIF = 0;
+    IEC0bits.U1TXIE = 1;
+    IEC0bits.U1RXIE = 1;
+    U1MODEbits.UARTEN = 1;
+    U1STAbits.UTXEN = 1;
+}
+void uart1_disable(void) {
+    IFS0bits.U1TXIF = 0;
+    IFS0bits.U1RXIF = 0;
+    IEC0bits.U1TXIE = 0;
+    IEC0bits.U1RXIE = 0;
+    U1MODEbits.UARTEN = 0;
+    U1STAbits.UTXEN = 0;
+}
+bool uart1_isenabled(void) {
+    if (U1MODEbits.UARTEN == 1)
+        return true;
+    else
+        return false;
 }
 
 void __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt(void) {

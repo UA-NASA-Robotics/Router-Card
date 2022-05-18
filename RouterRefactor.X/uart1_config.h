@@ -23,8 +23,15 @@ extern "C" {
 //void uart1_init(int baud);
 void uart1_init(void);
 void uart1_put(uint8_t val);
+void uart1_put_c(uint8_t val);
 uint8_t uart1_get();
 uint8_t uart1_peek();
+bool uart1_rx_empty();
+uint8_t* uart1_rx_getarray();
+
+void uart1_disable(void);
+void uart1_enable(void);
+bool uart1_isenabled(void);
 
 #ifdef	__cplusplus
 }

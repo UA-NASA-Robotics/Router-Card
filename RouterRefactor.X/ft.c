@@ -50,7 +50,7 @@ bool FT_Modified (FT_t * handle, uint8_t index)
 }
 unsigned char val;
 unsigned char tmpVal;
-void FT_Receive (FT_t * handle)
+bool FT_Receive (FT_t * handle)
 {
 	//printUART1 ();
 	//PORTA ^= (1 << 5);
@@ -66,6 +66,7 @@ void FT_Receive (FT_t * handle)
 	}
 	// parse/extract messages from local buffer and update local array
 	parse(&handle->receive_buf, handle->array, handle->flags, ARRAY_SZ, handle->address);
+    return true;
 }
 
 
@@ -110,4 +111,8 @@ void FT_Send (FT_t * handle, uint8_t address)
 
 }
 
-
+#ifndef SAFE
+void FT_ClearFlag(FT_t* handle, uint8_t index) {
+	handle->flags[index] = false;
+}
+#endif

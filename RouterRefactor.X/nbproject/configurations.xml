@@ -34,6 +34,10 @@
       <itemPath>Init.h</itemPath>
       <itemPath>buffer.h</itemPath>
       <itemPath>crc.h</itemPath>
+      <itemPath>commsReceive.h</itemPath>
+      <itemPath>CommsIDs.h</itemPath>
+      <itemPath>PeripheralSystems.h</itemPath>
+      <itemPath>FastTransfer_CAN.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -66,6 +70,9 @@
       <itemPath>Init.c</itemPath>
       <itemPath>buffer.c</itemPath>
       <itemPath>crc.c</itemPath>
+      <itemPath>commsReceive.c</itemPath>
+      <itemPath>PeripheralSystems.c</itemPath>
+      <itemPath>FastTransfer_CAN.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

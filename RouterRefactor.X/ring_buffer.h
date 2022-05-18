@@ -9,6 +9,7 @@
 #define	RING_BUFFER_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define BUFFER_SIZE 200UL
 
@@ -30,11 +31,16 @@ extern "C" {
     uint64_t rbuffer_increment(const uint64_t, const uint64_t);
     uint8_t rbuffer_pop(struct ring_buffer_t*);
     uint8_t rbuffer_peek(struct ring_buffer_t*);
+    uint8_t rbuffer_get(struct ring_buffer_t*, uint32_t);
     void rbuffer_push(struct ring_buffer_t*, uint8_t data);
     void rbuffer_push2(struct ring_buffer_t*, uint8_t, uint8_t);
     void rbuffer_push3(struct ring_buffer_t*, uint8_t, uint8_t, uint8_t);
+    void rbuffer_flush(struct ring_buffer_t*, uint8_t val);
     void rbuffer_clear(struct ring_buffer_t*);
     uint8_t* rbuffer_getarray(struct ring_buffer_t*);
+    bool rbuffer_empty(struct ring_buffer_t*);
+    bool rbuffer_full(struct ring_buffer_t*);
+    void rbuffer_reset(struct ring_buffer_t*);
 
 #ifdef	__cplusplus
 }

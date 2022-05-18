@@ -14,9 +14,20 @@
 extern "C" {
 #endif
 
-extern volatile unsigned long ms;
+typedef struct
+{
+    unsigned long long timerLength;
+    unsigned long long prevTime;
+} timer_t;
+
+extern volatile unsigned long long ms;
 void timer1_init(void);
-unsigned long get_ms(void);
+unsigned long long get_ms(void);
+unsigned long long millis(void);
+unsigned long long getTimeElapsed(timer_t*);
+void setTimerInterval(timer_t*, unsigned long long);
+void ResetTimer(timer_t*);
+int timerDone(timer_t* t, int resetFlag);
 
 #ifdef	__cplusplus
 }
